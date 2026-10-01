@@ -1,0 +1,19 @@
+# Dataset
+*.csv
+*.zip
+
+# Model Machine Learning
+*.pkl
+*.joblib
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment
+.env
+venv/
+.venv/
