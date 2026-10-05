@@ -17,3 +17,4 @@ __pycache__/
 .env
 venv/
 .venv/
+android-app/local.properties
