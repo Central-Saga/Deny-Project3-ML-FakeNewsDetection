@@ -12,6 +12,10 @@ data class CreateHistoryResponse(
     val id: Int
 )
 
+data class DeleteHistoryResponse(
+    val message: String
+)
+
 data class DetectionHistory(
     val id: Int,
     val title: String,
