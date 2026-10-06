@@ -9,6 +9,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.fakenewsdetection.network.ApiClient
+import com.example.fakenewsdetection.network.CreateHistoryResponse
+import com.example.fakenewsdetection.network.DetectionRequest
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,6 +34,10 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
+        // =====================================================
+        // VIEW INITIALIZATION
+        // =====================================================
+
         edtTitle = findViewById(R.id.edtTitle)
         edtContent = findViewById(R.id.edtContent)
         btnDetect = findViewById(R.id.btnDetect)
@@ -35,17 +45,27 @@ class MainActivity : AppCompatActivity() {
         txtModelInfo = findViewById(R.id.txtModelInfo)
         resultContainer = findViewById(R.id.resultContainer)
 
+        // Sembunyikan hasil ketika aplikasi pertama dibuka
         resultContainer.visibility = View.GONE
 
-        // Load model ML
+        // Load model Machine Learning
         loadMachineLearningModel()
+
+        // =====================================================
+        // BUTTON DETECT
+        // =====================================================
 
         btnDetect.setOnClickListener {
 
-            val title = edtTitle.text.toString().trim()
-            val content = edtContent.text.toString().trim()
+            val title =
+                edtTitle.text.toString().trim()
 
+            val content =
+                edtContent.text.toString().trim()
+
+            // Pastikan model sudah siap
             if (!modelReady) {
+
                 Toast.makeText(
                     this,
                     "Model masih dimuat, silakan tunggu.",
@@ -55,21 +75,39 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Validasi judul
             if (title.isBlank()) {
-                edtTitle.error = "Judul berita harus diisi"
+
+                edtTitle.error =
+                    "Judul berita harus diisi"
+
                 edtTitle.requestFocus()
+
                 return@setOnClickListener
             }
 
+            // Validasi isi berita
             if (content.isBlank()) {
-                edtContent.error = "Isi berita harus diisi"
+
+                edtContent.error =
+                    "Isi berita harus diisi"
+
                 edtContent.requestFocus()
+
                 return@setOnClickListener
             }
 
-            detectNews(title, content)
+            // Jalankan deteksi
+            detectNews(
+                title = title,
+                content = content
+            )
         }
     }
+
+    // =========================================================
+    // LOAD MACHINE LEARNING MODEL
+    // =========================================================
 
     private fun loadMachineLearningModel() {
 
@@ -83,7 +121,9 @@ class MainActivity : AppCompatActivity() {
             try {
 
                 classifier =
-                    FakeNewsClassifier(applicationContext)
+                    FakeNewsClassifier(
+                        applicationContext
+                    )
 
                 modelReady = true
 
@@ -106,7 +146,8 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
 
                     btnDetect.isEnabled = false
-                    btnDetect.text = "MODEL GAGAL DIMUAT"
+                    btnDetect.text =
+                        "MODEL GAGAL DIMUAT"
 
                     Toast.makeText(
                         this,
@@ -118,6 +159,10 @@ class MainActivity : AppCompatActivity() {
 
         }.start()
     }
+
+    // =========================================================
+    // DETECT NEWS
+    // =========================================================
 
     private fun detectNews(
         title: String,
@@ -131,38 +176,73 @@ class MainActivity : AppCompatActivity() {
 
             try {
 
-                val result = classifier.predict(
-                    title,
-                    content
-                )
+                // Prediksi menggunakan model ML offline
+                val result =
+                    classifier.predict(
+                        title,
+                        content
+                    )
 
                 runOnUiThread {
 
+                    // Tampilkan container hasil
                     resultContainer.visibility =
                         View.VISIBLE
 
+                    val predictionText: String
+
+                    // =========================================
+                    // HASIL KLASIFIKASI
+                    // =========================================
+
                     if (result.label == 0) {
 
-                        txtResult.text = "FAKE NEWS"
+                        predictionText =
+                            "FAKE NEWS"
+
+                        txtResult.text =
+                            predictionText
 
                         txtResult.setTextColor(
-                            Color.parseColor("#DC2626")
+                            Color.parseColor(
+                                "#DC2626"
+                            )
                         )
 
                     } else {
 
-                        txtResult.text = "REAL NEWS"
+                        predictionText =
+                            "REAL NEWS"
+
+                        txtResult.text =
+                            predictionText
 
                         txtResult.setTextColor(
-                            Color.parseColor("#16A34A")
+                            Color.parseColor(
+                                "#16A34A"
+                            )
                         )
                     }
 
+                    // Informasi model
                     txtModelInfo.text =
                         "Linear SVM • Accuracy 98.95%"
 
+                    // =========================================
+                    // SIMPAN HASIL KE API
+                    // =========================================
+
+                    saveDetectionHistory(
+                        title = title,
+                        content = content,
+                        prediction = predictionText,
+                        score = result.score
+                    )
+
+                    // Aktifkan kembali tombol
                     btnDetect.isEnabled = true
-                    btnDetect.text = "DETEKSI BERITA"
+                    btnDetect.text =
+                        "DETEKSI BERITA"
                 }
 
             } catch (e: Exception) {
@@ -170,7 +250,8 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
 
                     btnDetect.isEnabled = true
-                    btnDetect.text = "DETEKSI BERITA"
+                    btnDetect.text =
+                        "DETEKSI BERITA"
 
                     Toast.makeText(
                         this,
@@ -181,5 +262,81 @@ class MainActivity : AppCompatActivity() {
             }
 
         }.start()
+    }
+
+    // =========================================================
+    // SAVE DETECTION HISTORY TO FASTAPI
+    // =========================================================
+
+    private fun saveDetectionHistory(
+        title: String,
+        content: String,
+        prediction: String,
+        score: Double
+    ) {
+
+        // Data yang akan dikirim ke FastAPI
+        val request =
+            DetectionRequest(
+                title = title,
+                content = content,
+                prediction = prediction,
+                score = score
+            )
+
+        // Kirim menggunakan Retrofit
+        ApiClient.apiService
+            .createHistory(request)
+            .enqueue(
+                object :
+                    Callback<CreateHistoryResponse> {
+
+                    // =========================================
+                    // RESPONSE DARI SERVER
+                    // =========================================
+
+                    override fun onResponse(
+                        call: Call<CreateHistoryResponse>,
+                        response: Response<CreateHistoryResponse>
+                    ) {
+
+                        if (response.isSuccessful) {
+
+                            val historyResponse =
+                                response.body()
+
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Riwayat berhasil disimpan (ID: ${historyResponse?.id})",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                        } else {
+
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Gagal menyimpan riwayat. HTTP ${response.code()}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+
+                    // =========================================
+                    // GAGAL TERHUBUNG KE SERVER
+                    // =========================================
+
+                    override fun onFailure(
+                        call: Call<CreateHistoryResponse>,
+                        t: Throwable
+                    ) {
+
+                        Toast.makeText(
+                            this@MainActivity,
+                            "API tidak dapat dihubungi: ${t.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            )
     }
 }
