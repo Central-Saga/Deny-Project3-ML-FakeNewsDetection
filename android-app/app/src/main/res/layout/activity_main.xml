@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F7FA"
+    android:background="#F8FAFC"
     android:fillViewport="true">
 
     <LinearLayout
@@ -13,116 +12,203 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- ================================================= -->
+        <!-- HEADER -->
+        <!-- ================================================= -->
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Fake News Detection"
-            android:textSize="28sp"
-            android:textStyle="bold"
             android:textColor="#0F172A"
-            android:gravity="center"
-            android:layout_marginTop="24dp" />
+            android:textSize="28sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Deteksi berita FAKE atau REAL menggunakan Machine Learning"
-            android:textSize="14sp"
+            android:layout_marginTop="6dp"
+            android:text="Analisis berita menggunakan Machine Learning"
             android:textColor="#64748B"
-            android:gravity="center"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="32dp" />
+            android:textSize="15sp" />
+
+        <!-- ================================================= -->
+        <!-- MODEL INFO -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="#EEF2FF"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MODEL MACHINE LEARNING"
+                android:textColor="#4338CA"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="TF-IDF + Linear SVM"
+                android:textColor="#1E293B"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="Model Accuracy: 98.95%"
+                android:textColor="#64748B"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- ================================================= -->
+        <!-- TITLE -->
+        <!-- ================================================= -->
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
             android:text="Judul Berita"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#0F172A" />
+            android:textColor="#1E293B"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/edtTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Masukkan judul berita"
-            android:inputType="text"
-            android:padding="14dp"
+            android:layout_height="56dp"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="20dp" />
+            android:background="@android:drawable/edit_text"
+            android:hint="Masukkan judul berita"
+            android:inputType="textCapSentences"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:textColor="#0F172A"
+            android:textColorHint="#94A3B8"
+            android:textSize="15sp" />
+
+        <!-- ================================================= -->
+        <!-- CONTENT -->
+        <!-- ================================================= -->
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="Isi Berita"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#0F172A" />
+            android:textColor="#1E293B"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/edtContent"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:hint="Masukkan atau tempel isi berita..."
-            android:gravity="top"
-            android:inputType="textMultiLine"
+            android:layout_height="170dp"
+            android:layout_marginTop="8dp"
+            android:background="@android:drawable/edit_text"
+            android:gravity="top|start"
+            android:hint="Masukkan isi berita yang ingin dianalisis..."
+            android:inputType="textCapSentences|textMultiLine"
             android:padding="14dp"
-            android:layout_marginTop="8dp" />
+            android:scrollbars="vertical"
+            android:textColor="#0F172A"
+            android:textColorHint="#94A3B8"
+            android:textSize="15sp" />
+
+        <!-- ================================================= -->
+        <!-- DETECT BUTTON -->
+        <!-- ================================================= -->
 
         <Button
             android:id="@+id/btnDetect"
             android:layout_width="match_parent"
             android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="#4F46E5"
             android:text="DETEKSI BERITA"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginTop="24dp" />
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <!-- ================================================= -->
+        <!-- HISTORY BUTTON -->
+        <!-- ================================================= -->
 
         <Button
             android:id="@+id/btnHistory"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_height="54dp"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="#334155"
             android:text="LIHAT RIWAYAT"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
             android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnReset"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="#E2E8F0"
+            android:text="BERSIHKAN FORM"
+            android:textColor="#334155"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- ================================================= -->
+        <!-- RESULT -->
+        <!-- ================================================= -->
 
         <LinearLayout
             android:id="@+id/resultContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="24dp"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
             android:background="#FFFFFF"
+            android:elevation="4dp"
+            android:orientation="vertical"
+            android:padding="20dp"
             android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="HASIL DETEKSI"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#64748B" />
+                android:text="HASIL ANALISIS"
+                android:textColor="#64748B"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtResult"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:text="FAKE NEWS"
-                android:textSize="28sp"
-                android:textStyle="bold"
                 android:textColor="#DC2626"
-                android:layout_marginTop="12dp" />
+                android:textSize="26sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtModelInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:text="Linear SVM • Accuracy 98.95%"
-                android:textSize="13sp"
                 android:textColor="#64748B"
-                android:layout_marginTop="10dp" />
+                android:textSize="14sp" />
 
         </LinearLayout>
 

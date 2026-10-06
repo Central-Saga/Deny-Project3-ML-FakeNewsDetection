@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var btnDetect: Button
     private lateinit var btnHistory: Button
+    private lateinit var btnReset: Button
 
     private lateinit var txtResult: TextView
     private lateinit var txtModelInfo: TextView
@@ -44,21 +45,35 @@ class MainActivity : AppCompatActivity() {
         // VIEW INITIALIZATION
         // =====================================================
 
-        edtTitle = findViewById(R.id.edtTitle)
-        edtContent = findViewById(R.id.edtContent)
+        edtTitle =
+            findViewById(R.id.edtTitle)
 
-        btnDetect = findViewById(R.id.btnDetect)
-        btnHistory = findViewById(R.id.btnHistory)
+        edtContent =
+            findViewById(R.id.edtContent)
 
-        txtResult = findViewById(R.id.txtResult)
-        txtModelInfo = findViewById(R.id.txtModelInfo)
+        btnDetect =
+            findViewById(R.id.btnDetect)
 
-        resultContainer = findViewById(R.id.resultContainer)
+        btnHistory =
+            findViewById(R.id.btnHistory)
+
+        btnReset =
+            findViewById(R.id.btnReset)
+
+        txtResult =
+            findViewById(R.id.txtResult)
+
+        txtModelInfo =
+            findViewById(R.id.txtModelInfo)
+
+        resultContainer =
+            findViewById(R.id.resultContainer)
 
         // Sembunyikan hasil saat aplikasi pertama dibuka
-        resultContainer.visibility = View.GONE
+        resultContainer.visibility =
+            View.GONE
 
-        // Load Machine Learning model
+        // Load model ML
         loadMachineLearningModel()
 
         // =====================================================
@@ -111,7 +126,7 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Jalankan prediksi
+            // Jalankan deteksi
             detectNews(
                 title = title,
                 content = content
@@ -132,6 +147,38 @@ class MainActivity : AppCompatActivity() {
 
             startActivity(intent)
         }
+
+        // =====================================================
+        // BUTTON RESET
+        // =====================================================
+
+        btnReset.setOnClickListener {
+
+            // Kosongkan input
+            edtTitle.text.clear()
+            edtContent.text.clear()
+
+            // Hilangkan error input
+            edtTitle.error = null
+            edtContent.error = null
+
+            // Sembunyikan hasil
+            resultContainer.visibility =
+                View.GONE
+
+            // Bersihkan text hasil
+            txtResult.text = ""
+            txtModelInfo.text = ""
+
+            // Kembalikan fokus ke judul
+            edtTitle.requestFocus()
+
+            Toast.makeText(
+                this,
+                "Form berhasil dibersihkan",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     // =========================================================
@@ -142,19 +189,21 @@ class MainActivity : AppCompatActivity() {
 
         modelReady = false
 
-        btnDetect.isEnabled = false
-        btnDetect.text = "MEMUAT MODEL..."
+        btnDetect.isEnabled =
+            false
+
+        btnDetect.text =
+            "MEMUAT MODEL..."
 
         Thread {
 
-            // Jalankan proses berat sebagai background priority
+            // Prioritas background agar UI tidak berat
             Process.setThreadPriority(
                 Process.THREAD_PRIORITY_BACKGROUND
             )
 
             try {
 
-                // Load model dari JSON
                 val loadedClassifier =
                     FakeNewsClassifier(
                         applicationContext
@@ -162,11 +211,17 @@ class MainActivity : AppCompatActivity() {
 
                 runOnUiThread {
 
-                    classifier = loadedClassifier
-                    modelReady = true
+                    classifier =
+                        loadedClassifier
 
-                    btnDetect.isEnabled = true
-                    btnDetect.text = "DETEKSI BERITA"
+                    modelReady =
+                        true
+
+                    btnDetect.isEnabled =
+                        true
+
+                    btnDetect.text =
+                        "DETEKSI BERITA"
 
                     Toast.makeText(
                         this,
@@ -179,10 +234,14 @@ class MainActivity : AppCompatActivity() {
 
                 runOnUiThread {
 
-                    modelReady = false
+                    modelReady =
+                        false
 
-                    btnDetect.isEnabled = false
-                    btnDetect.text = "MODEL GAGAL DIMUAT"
+                    btnDetect.isEnabled =
+                        false
+
+                    btnDetect.text =
+                        "MODEL GAGAL DIMUAT"
 
                     Toast.makeText(
                         this,
@@ -194,7 +253,8 @@ class MainActivity : AppCompatActivity() {
 
         }.apply {
 
-            name = "ML-Model-Loader"
+            name =
+                "ML-Model-Loader"
 
             start()
         }
@@ -209,19 +269,20 @@ class MainActivity : AppCompatActivity() {
         content: String
     ) {
 
-        btnDetect.isEnabled = false
-        btnDetect.text = "MENGANALISIS..."
+        btnDetect.isEnabled =
+            false
+
+        btnDetect.text =
+            "MENGANALISIS..."
 
         Thread {
 
-            // Prediksi juga dijalankan sebagai background priority
             Process.setThreadPriority(
                 Process.THREAD_PRIORITY_BACKGROUND
             )
 
             try {
 
-                // Prediksi menggunakan model ML offline
                 val result =
                     classifier.predict(
                         title,
@@ -236,7 +297,7 @@ class MainActivity : AppCompatActivity() {
                     val predictionText: String
 
                     // =================================================
-                    // HASIL KLASIFIKASI
+                    // HASIL PREDIKSI
                     // =================================================
 
                     if (result.label == 0) {
@@ -268,12 +329,11 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
 
-                    // Informasi model
                     txtModelInfo.text =
                         "Linear SVM • Accuracy 98.95%"
 
                     // =================================================
-                    // SIMPAN HASIL KE FASTAPI / POSTGRESQL
+                    // SIMPAN KE FASTAPI / POSTGRESQL
                     // =================================================
 
                     saveDetectionHistory(
@@ -283,16 +343,22 @@ class MainActivity : AppCompatActivity() {
                         score = result.score
                     )
 
-                    btnDetect.isEnabled = true
-                    btnDetect.text = "DETEKSI BERITA"
+                    btnDetect.isEnabled =
+                        true
+
+                    btnDetect.text =
+                        "DETEKSI BERITA"
                 }
 
             } catch (e: Exception) {
 
                 runOnUiThread {
 
-                    btnDetect.isEnabled = true
-                    btnDetect.text = "DETEKSI BERITA"
+                    btnDetect.isEnabled =
+                        true
+
+                    btnDetect.text =
+                        "DETEKSI BERITA"
 
                     Toast.makeText(
                         this,
@@ -304,14 +370,15 @@ class MainActivity : AppCompatActivity() {
 
         }.apply {
 
-            name = "ML-Prediction"
+            name =
+                "ML-Prediction"
 
             start()
         }
     }
 
     // =========================================================
-    // SAVE DETECTION HISTORY TO FASTAPI
+    // SAVE HISTORY TO FASTAPI
     // =========================================================
 
     private fun saveDetectionHistory(
@@ -334,10 +401,6 @@ class MainActivity : AppCompatActivity() {
             .enqueue(
                 object :
                     Callback<CreateHistoryResponse> {
-
-                    // =============================================
-                    // RESPONSE DARI SERVER
-                    // =============================================
 
                     override fun onResponse(
                         call: Call<CreateHistoryResponse>,
@@ -364,10 +427,6 @@ class MainActivity : AppCompatActivity() {
                             ).show()
                         }
                     }
-
-                    // =============================================
-                    // GAGAL TERHUBUNG KE API
-                    // =============================================
 
                     override fun onFailure(
                         call: Call<CreateHistoryResponse>,
