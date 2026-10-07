@@ -17,6 +17,7 @@ import com.example.fakenewsdetection.network.DetectionRequest
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -166,11 +167,11 @@ class MainActivity : AppCompatActivity() {
             resultContainer.visibility =
                 View.GONE
 
-            // Bersihkan text hasil
+            // Bersihkan hasil
             txtResult.text = ""
             txtModelInfo.text = ""
 
-            // Kembalikan fokus ke judul
+            // Fokus kembali ke judul
             edtTitle.requestFocus()
 
             Toast.makeText(
@@ -197,7 +198,8 @@ class MainActivity : AppCompatActivity() {
 
         Thread {
 
-            // Prioritas background agar UI tidak berat
+            // Model v1.3 lebih besar,
+            // jadi tetap dijalankan di background thread.
             Process.setThreadPriority(
                 Process.THREAD_PRIORITY_BACKGROUND
             )
@@ -225,7 +227,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Model Machine Learning berhasil dimuat",
+                        "Model English v1.3 berhasil dimuat",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -297,40 +299,125 @@ class MainActivity : AppCompatActivity() {
                     val predictionText: String
 
                     // =================================================
-                    // HASIL PREDIKSI
+                    // HASIL PREDIKSI v1.3
+                    //
+                    //  0 = FAKE
+                    // -1 = UNCERTAIN
+                    //  1 = REAL
                     // =================================================
 
-                    if (result.label == 0) {
+                    when (result.label) {
 
-                        predictionText =
-                            "FAKE NEWS"
+                        FakeNewsClassifier.LABEL_FAKE -> {
 
-                        txtResult.text =
-                            predictionText
+                            predictionText =
+                                "FAKE NEWS"
 
-                        txtResult.setTextColor(
-                            Color.parseColor(
-                                "#DC2626"
+                            txtResult.text =
+                                predictionText
+
+                            txtResult.setTextColor(
+                                Color.parseColor(
+                                    "#DC2626"
+                                )
                             )
-                        )
+                        }
 
-                    } else {
+                        FakeNewsClassifier.LABEL_REAL -> {
 
-                        predictionText =
-                            "REAL NEWS"
+                            predictionText =
+                                "REAL NEWS"
 
-                        txtResult.text =
-                            predictionText
+                            txtResult.text =
+                                predictionText
 
-                        txtResult.setTextColor(
-                            Color.parseColor(
-                                "#16A34A"
+                            txtResult.setTextColor(
+                                Color.parseColor(
+                                    "#16A34A"
+                                )
                             )
-                        )
+                        }
+
+                        FakeNewsClassifier.LABEL_UNCERTAIN -> {
+
+                            predictionText =
+                                "UNCERTAIN"
+
+                            txtResult.text =
+                                predictionText
+
+                            // Amber / orange
+                            txtResult.setTextColor(
+                                Color.parseColor(
+                                    "#D97706"
+                                )
+                            )
+                        }
+
+                        else -> {
+
+                            predictionText =
+                                "UNCERTAIN"
+
+                            txtResult.text =
+                                predictionText
+
+                            txtResult.setTextColor(
+                                Color.parseColor(
+                                    "#D97706"
+                                )
+                            )
+                        }
                     }
 
+                    // =================================================
+                    // MODEL INFO
+                    // =================================================
+
+                    val formattedScore =
+                        String.format(
+                            Locale.US,
+                            "%.10f",
+                            result.score
+                        )
+
                     txtModelInfo.text =
-                        "Linear SVM • Accuracy 98.95%"
+                        buildString {
+
+                            append(
+                                "English Model v1.3"
+                            )
+
+                            append(
+                                "\nWord + Character TF-IDF • Linear SVM"
+                            )
+
+                            append(
+                                "\nScore: "
+                            )
+
+                            append(
+                                formattedScore
+                            )
+
+                            append(
+                                " • Threshold: ±0.20"
+                            )
+
+                            append(
+                                "\nISOT: 99.34% • WELFake: 95.57%"
+                            )
+
+                            if (
+                                result.label ==
+                                FakeNewsClassifier.LABEL_UNCERTAIN
+                            ) {
+
+                                append(
+                                    "\nModel tidak cukup yakin. Verifikasi dari sumber terpercaya."
+                                )
+                            }
+                        }
 
                     // =================================================
                     // SIMPAN KE FASTAPI / POSTGRESQL
