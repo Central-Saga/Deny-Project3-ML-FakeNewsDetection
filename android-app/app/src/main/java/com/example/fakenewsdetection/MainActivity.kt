@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Process
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -17,9 +18,12 @@ import com.example.fakenewsdetection.network.DetectionRequest
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
+
+    // =========================================================
+    // VIEWS
+    // =========================================================
 
     private lateinit var edtTitle: EditText
     private lateinit var edtContent: EditText
@@ -28,23 +32,55 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnHistory: Button
     private lateinit var btnReset: Button
 
+    private lateinit var txtModelStatus: TextView
     private lateinit var txtResult: TextView
+    private lateinit var txtDetectedLanguage: TextView
     private lateinit var txtModelInfo: TextView
+    private lateinit var txtDisclaimer: TextView
 
     private lateinit var resultContainer: LinearLayout
+
+    // =========================================================
+    // ML
+    // =========================================================
 
     private lateinit var classifier: FakeNewsClassifier
 
     private var modelReady = false
 
+
+    // =========================================================
+    // ON CREATE
+    // =========================================================
+
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
 
-        // =====================================================
-        // VIEW INITIALIZATION
-        // =====================================================
+        window.statusBarColor =
+            Color.parseColor("#F6F7FB")
+
+        window.navigationBarColor =
+            Color.parseColor("#FFFFFF")
+
+        initializeViews()
+
+        resultContainer.visibility =
+            View.GONE
+
+        setupListeners()
+
+        loadMachineLearningModel()
+    }
+
+
+    // =========================================================
+    // INITIALIZE VIEWS
+    // =========================================================
+
+    private fun initializeViews() {
 
         edtTitle =
             findViewById(R.id.edtTitle)
@@ -61,82 +97,45 @@ class MainActivity : AppCompatActivity() {
         btnReset =
             findViewById(R.id.btnReset)
 
+        txtModelStatus =
+            findViewById(R.id.txtModelStatus)
+
         txtResult =
             findViewById(R.id.txtResult)
+
+        txtDetectedLanguage =
+            findViewById(R.id.txtDetectedLanguage)
 
         txtModelInfo =
             findViewById(R.id.txtModelInfo)
 
+        txtDisclaimer =
+            findViewById(R.id.txtDisclaimer)
+
         resultContainer =
             findViewById(R.id.resultContainer)
+    }
 
-        // Sembunyikan hasil saat aplikasi pertama dibuka
-        resultContainer.visibility =
-            View.GONE
 
-        // Load model ML
-        loadMachineLearningModel()
+    // =========================================================
+    // BUTTON LISTENERS
+    // =========================================================
 
-        // =====================================================
-        // BUTTON DETECT
-        // =====================================================
+    private fun setupListeners() {
+
+        // -----------------------------------------------------
+        // DETECT
+        // -----------------------------------------------------
 
         btnDetect.setOnClickListener {
 
-            val title =
-                edtTitle.text
-                    .toString()
-                    .trim()
-
-            val content =
-                edtContent.text
-                    .toString()
-                    .trim()
-
-            // Pastikan model sudah siap
-            if (!modelReady) {
-
-                Toast.makeText(
-                    this,
-                    "Model masih dimuat, silakan tunggu.",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                return@setOnClickListener
-            }
-
-            // Validasi judul
-            if (title.isBlank()) {
-
-                edtTitle.error =
-                    "Judul berita harus diisi"
-
-                edtTitle.requestFocus()
-
-                return@setOnClickListener
-            }
-
-            // Validasi isi berita
-            if (content.isBlank()) {
-
-                edtContent.error =
-                    "Isi berita harus diisi"
-
-                edtContent.requestFocus()
-
-                return@setOnClickListener
-            }
-
-            // Jalankan deteksi
-            detectNews(
-                title = title,
-                content = content
-            )
+            detectButtonClicked()
         }
 
-        // =====================================================
-        // BUTTON HISTORY
-        // =====================================================
+
+        // -----------------------------------------------------
+        // HISTORY
+        // -----------------------------------------------------
 
         btnHistory.setOnClickListener {
 
@@ -149,60 +148,118 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // =====================================================
-        // BUTTON RESET
-        // =====================================================
+
+        // -----------------------------------------------------
+        // RESET
+        // -----------------------------------------------------
 
         btnReset.setOnClickListener {
 
-            // Kosongkan input
-            edtTitle.text.clear()
-            edtContent.text.clear()
-
-            // Hilangkan error input
-            edtTitle.error = null
-            edtContent.error = null
-
-            // Sembunyikan hasil
-            resultContainer.visibility =
-                View.GONE
-
-            // Bersihkan hasil
-            txtResult.text = ""
-            txtModelInfo.text = ""
-
-            // Fokus kembali ke judul
-            edtTitle.requestFocus()
-
-            Toast.makeText(
-                this,
-                "Form berhasil dibersihkan",
-                Toast.LENGTH_SHORT
-            ).show()
+            resetForm()
         }
     }
 
+
     // =========================================================
-    // LOAD MACHINE LEARNING MODEL
+    // DETECT BUTTON
+    // =========================================================
+
+    private fun detectButtonClicked() {
+
+        val title =
+            edtTitle.text
+                .toString()
+                .trim()
+
+        val content =
+            edtContent.text
+                .toString()
+                .trim()
+
+
+        edtTitle.error = null
+        edtContent.error = null
+
+
+        // -----------------------------------------------------
+        // MODEL READY
+        // -----------------------------------------------------
+
+        if (!modelReady) {
+
+            Toast.makeText(
+                this,
+                "Model masih dimuat, silakan tunggu.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+
+        // -----------------------------------------------------
+        // TITLE VALIDATION
+        // -----------------------------------------------------
+
+        if (title.isBlank()) {
+
+            edtTitle.error =
+                "Judul berita harus diisi"
+
+            edtTitle.requestFocus()
+
+            return
+        }
+
+
+        // -----------------------------------------------------
+        // CONTENT VALIDATION
+        // -----------------------------------------------------
+
+        if (content.isBlank()) {
+
+            edtContent.error =
+                "Isi berita harus diisi"
+
+            edtContent.requestFocus()
+
+            return
+        }
+
+
+        hideKeyboard()
+
+
+        detectNews(
+            title = title,
+            content = content
+        )
+    }
+
+
+    // =========================================================
+    // LOAD MACHINE LEARNING
     // =========================================================
 
     private fun loadMachineLearningModel() {
 
         modelReady = false
 
-        btnDetect.isEnabled =
-            false
+        btnDetect.isEnabled = false
 
         btnDetect.text =
-            "MEMUAT MODEL..."
+            "Memuat model..."
+
+        txtModelStatus.text =
+            "Menyiapkan model offline..."
+
 
         Thread {
 
-            // Model v1.3 lebih besar,
-            // jadi tetap dijalankan di background thread.
             Process.setThreadPriority(
                 Process.THREAD_PRIORITY_BACKGROUND
             )
+
 
             try {
 
@@ -210,6 +267,7 @@ class MainActivity : AppCompatActivity() {
                     FakeNewsClassifier(
                         applicationContext
                     )
+
 
                 runOnUiThread {
 
@@ -223,14 +281,12 @@ class MainActivity : AppCompatActivity() {
                         true
 
                     btnDetect.text =
-                        "DETEKSI BERITA"
+                        "Analisis Berita"
 
-                    Toast.makeText(
-                        this,
-                        "Model English v1.3 berhasil dimuat",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    txtModelStatus.text =
+                        "2 model aktif • Bahasa dipilih otomatis"
                 }
+
 
             } catch (e: Exception) {
 
@@ -243,7 +299,10 @@ class MainActivity : AppCompatActivity() {
                         false
 
                     btnDetect.text =
-                        "MODEL GAGAL DIMUAT"
+                        "Model tidak tersedia"
+
+                    txtModelStatus.text =
+                        "Model gagal dimuat"
 
                     Toast.makeText(
                         this,
@@ -262,6 +321,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     // =========================================================
     // DETECT NEWS
     // =========================================================
@@ -275,7 +335,8 @@ class MainActivity : AppCompatActivity() {
             false
 
         btnDetect.text =
-            "MENGANALISIS..."
+            "Menganalisis..."
+
 
         Thread {
 
@@ -283,144 +344,51 @@ class MainActivity : AppCompatActivity() {
                 Process.THREAD_PRIORITY_BACKGROUND
             )
 
+
             try {
 
+                // =================================================
+                // AUTO LANGUAGE + AUTO MODEL
+                // =================================================
+
                 val result =
-                    classifier.predict(
+                    classifier.predictAuto(
                         title,
                         content
                     )
 
+
                 runOnUiThread {
 
-                    resultContainer.visibility =
-                        View.VISIBLE
+                    showPrediction(
+                        result
+                    )
 
-                    val predictionText: String
 
-                    // =================================================
-                    // HASIL PREDIKSI v1.3
-                    //
-                    //  0 = FAKE
-                    // -1 = UNCERTAIN
-                    //  1 = REAL
-                    // =================================================
+                    val predictionText =
+                        when (result.label) {
 
-                    when (result.label) {
+                            FakeNewsClassifier.LABEL_FAKE -> {
 
-                        FakeNewsClassifier.LABEL_FAKE -> {
-
-                            predictionText =
                                 "FAKE NEWS"
+                            }
 
-                            txtResult.text =
-                                predictionText
 
-                            txtResult.setTextColor(
-                                Color.parseColor(
-                                    "#DC2626"
-                                )
-                            )
-                        }
+                            FakeNewsClassifier.LABEL_REAL -> {
 
-                        FakeNewsClassifier.LABEL_REAL -> {
-
-                            predictionText =
                                 "REAL NEWS"
+                            }
 
-                            txtResult.text =
-                                predictionText
 
-                            txtResult.setTextColor(
-                                Color.parseColor(
-                                    "#16A34A"
-                                )
-                            )
-                        }
+                            else -> {
 
-                        FakeNewsClassifier.LABEL_UNCERTAIN -> {
-
-                            predictionText =
                                 "UNCERTAIN"
-
-                            txtResult.text =
-                                predictionText
-
-                            // Amber / orange
-                            txtResult.setTextColor(
-                                Color.parseColor(
-                                    "#D97706"
-                                )
-                            )
-                        }
-
-                        else -> {
-
-                            predictionText =
-                                "UNCERTAIN"
-
-                            txtResult.text =
-                                predictionText
-
-                            txtResult.setTextColor(
-                                Color.parseColor(
-                                    "#D97706"
-                                )
-                            )
-                        }
-                    }
-
-                    // =================================================
-                    // MODEL INFO
-                    // =================================================
-
-                    val formattedScore =
-                        String.format(
-                            Locale.US,
-                            "%.10f",
-                            result.score
-                        )
-
-                    txtModelInfo.text =
-                        buildString {
-
-                            append(
-                                "English Model v1.3"
-                            )
-
-                            append(
-                                "\nWord + Character TF-IDF • Linear SVM"
-                            )
-
-                            append(
-                                "\nScore: "
-                            )
-
-                            append(
-                                formattedScore
-                            )
-
-                            append(
-                                " • Threshold: ±0.20"
-                            )
-
-                            append(
-                                "\nISOT: 99.34% • WELFake: 95.57%"
-                            )
-
-                            if (
-                                result.label ==
-                                FakeNewsClassifier.LABEL_UNCERTAIN
-                            ) {
-
-                                append(
-                                    "\nModel tidak cukup yakin. Verifikasi dari sumber terpercaya."
-                                )
                             }
                         }
 
+
                     // =================================================
-                    // SIMPAN KE FASTAPI / POSTGRESQL
+                    // SAVE HISTORY
                     // =================================================
 
                     saveDetectionHistory(
@@ -430,12 +398,14 @@ class MainActivity : AppCompatActivity() {
                         score = result.score
                     )
 
+
                     btnDetect.isEnabled =
                         true
 
                     btnDetect.text =
-                        "DETEKSI BERITA"
+                        "Analisis Berita"
                 }
+
 
             } catch (e: Exception) {
 
@@ -445,7 +415,8 @@ class MainActivity : AppCompatActivity() {
                         true
 
                     btnDetect.text =
-                        "DETEKSI BERITA"
+                        "Analisis Berita"
+
 
                     Toast.makeText(
                         this,
@@ -464,8 +435,189 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     // =========================================================
-    // SAVE HISTORY TO FASTAPI
+    // SHOW RESULT
+    // =========================================================
+
+    private fun showPrediction(
+        result: FakeNewsClassifier.PredictionResult
+    ) {
+
+        // =====================================================
+        // RESULT LABEL
+        // =====================================================
+
+        when (result.label) {
+
+            FakeNewsClassifier.LABEL_FAKE -> {
+
+                txtResult.text =
+                    "FAKE NEWS"
+
+                txtResult.setTextColor(
+                    Color.parseColor(
+                        "#C62828"
+                    )
+                )
+
+                resultContainer
+                    .setBackgroundResource(
+                        R.drawable.bg_result_fake
+                    )
+            }
+
+
+            FakeNewsClassifier.LABEL_REAL -> {
+
+                txtResult.text =
+                    "REAL NEWS"
+
+                txtResult.setTextColor(
+                    Color.parseColor(
+                        "#15803D"
+                    )
+                )
+
+                resultContainer
+                    .setBackgroundResource(
+                        R.drawable.bg_result_real
+                    )
+            }
+
+
+            else -> {
+
+                txtResult.text =
+                    "UNCERTAIN"
+
+                txtResult.setTextColor(
+                    Color.parseColor(
+                        "#B45309"
+                    )
+                )
+
+                resultContainer
+                    .setBackgroundResource(
+                        R.drawable.bg_result_uncertain
+                    )
+            }
+        }
+
+
+        // =====================================================
+        // LANGUAGE + MODEL INFO
+        // =====================================================
+
+        when (result.language) {
+
+            FakeNewsClassifier.ModelLanguage.INDONESIAN -> {
+
+                txtDetectedLanguage.text =
+                    "Bahasa terdeteksi: Indonesia"
+
+                txtModelInfo.text =
+                    "Political v3 • TF-IDF + Linear SVM"
+
+                txtDisclaimer.text =
+                    "Model Indonesia terutama dilatih pada berita politik. " +
+                            "Prediksi dibuat berdasarkan pola teks dan bukan " +
+                            "verifikasi fakta secara real-time."
+            }
+
+
+            FakeNewsClassifier.ModelLanguage.ENGLISH -> {
+
+                txtDetectedLanguage.text =
+                    "Detected language: English"
+
+                txtModelInfo.text =
+                    "English v1.3 • TF-IDF + Linear SVM"
+
+                txtDisclaimer.text =
+                    "Prediction is based on textual patterns learned " +
+                            "by the model and is not real-time fact verification."
+            }
+        }
+
+
+        // =====================================================
+        // SHOW RESULT CARD
+        // =====================================================
+
+        resultContainer.visibility =
+            View.VISIBLE
+
+        resultContainer.alpha =
+            0f
+
+        resultContainer
+            .animate()
+            .alpha(1f)
+            .setDuration(250)
+            .start()
+    }
+
+
+    // =========================================================
+    // RESET FORM
+    // =========================================================
+
+    private fun resetForm() {
+
+        edtTitle.text.clear()
+        edtContent.text.clear()
+
+        edtTitle.error = null
+        edtContent.error = null
+
+        resultContainer.visibility =
+            View.GONE
+
+        txtResult.text =
+            ""
+
+        txtDetectedLanguage.text =
+            ""
+
+        txtModelInfo.text =
+            ""
+
+        txtDisclaimer.text =
+            ""
+
+        edtTitle.requestFocus()
+
+        Toast.makeText(
+            this,
+            "Form berhasil dibersihkan",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+
+    // =========================================================
+    // HIDE KEYBOARD
+    // =========================================================
+
+    private fun hideKeyboard() {
+
+        val inputMethodManager =
+            getSystemService(
+                INPUT_METHOD_SERVICE
+            ) as InputMethodManager
+
+
+        inputMethodManager
+            .hideSoftInputFromWindow(
+                currentFocus?.windowToken,
+                0
+            )
+    }
+
+
+    // =========================================================
+    // SAVE HISTORY
     // =========================================================
 
     private fun saveDetectionHistory(
@@ -483,48 +635,40 @@ class MainActivity : AppCompatActivity() {
                 score = score
             )
 
+
         ApiClient.apiService
-            .createHistory(request)
+            .createHistory(
+                request
+            )
             .enqueue(
+
                 object :
                     Callback<CreateHistoryResponse> {
+
 
                     override fun onResponse(
                         call: Call<CreateHistoryResponse>,
                         response: Response<CreateHistoryResponse>
                     ) {
 
-                        if (response.isSuccessful) {
-
-                            val historyResponse =
-                                response.body()
+                        if (!response.isSuccessful) {
 
                             Toast.makeText(
                                 this@MainActivity,
-                                "Riwayat berhasil disimpan (ID: ${historyResponse?.id})",
+                                "Prediksi berhasil, tetapi riwayat belum tersimpan.",
                                 Toast.LENGTH_SHORT
-                            ).show()
-
-                        } else {
-
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Gagal menyimpan riwayat. HTTP ${response.code()}",
-                                Toast.LENGTH_LONG
                             ).show()
                         }
                     }
+
 
                     override fun onFailure(
                         call: Call<CreateHistoryResponse>,
                         t: Throwable
                     ) {
 
-                        Toast.makeText(
-                            this@MainActivity,
-                            "API tidak dapat dihubungi: ${t.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        // Tidak perlu menggagalkan hasil prediksi.
+                        // Model tetap dapat digunakan secara offline.
                     }
                 }
             )

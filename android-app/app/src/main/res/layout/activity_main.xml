@@ -1,171 +1,227 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollMain"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8FAFC"
-    android:fillViewport="true">
+    android:background="#F6F7FB"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingStart="20dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="32dp">
+
 
         <!-- ================================================= -->
         <!-- HEADER -->
         <!-- ================================================= -->
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Fake News Detection"
-            android:textColor="#0F172A"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Analisis berita menggunakan Machine Learning"
-            android:textColor="#64748B"
-            android:textSize="15sp" />
+            <TextView
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_logo"
+                android:gravity="center"
+                android:text="FN"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Fake News Detection"
+                    android:textColor="#161B2C"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="AI-powered news text analysis"
+                    android:textColor="#73798C"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
 
         <!-- ================================================= -->
-        <!-- MODEL INFO -->
+        <!-- MODEL STATUS -->
         <!-- ================================================= -->
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:background="#EEF2FF"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_card"
+            android:elevation="2dp"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="18dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MODEL MACHINE LEARNING"
-                android:textColor="#4338CA"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:text="SMART MODEL"
+                android:textColor="#5B55F7"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="TF-IDF + Linear SVM"
-                android:textColor="#1E293B"
+                android:layout_marginTop="7dp"
+                android:text="Automatic Language Detection"
+                android:textColor="#191D2B"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/txtModelStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="Model Accuracy: 98.95%"
-                android:textColor="#64748B"
-                android:textSize="14sp" />
+                android:layout_marginTop="6dp"
+                android:text="Menyiapkan model offline..."
+                android:textColor="#747B8F"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Indonesia  •  English"
+                android:textColor="#4F46E5"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
 
+
         <!-- ================================================= -->
-        <!-- TITLE -->
+        <!-- FORM CARD -->
         <!-- ================================================= -->
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
-            android:text="Judul Berita"
-            android:textColor="#1E293B"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_card"
+            android:elevation="2dp"
+            android:orientation="vertical"
+            android:padding="18dp">
 
-        <EditText
-            android:id="@+id/edtTitle"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="8dp"
-            android:background="@android:drawable/edit_text"
-            android:hint="Masukkan judul berita"
-            android:inputType="textCapSentences"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:textColor="#0F172A"
-            android:textColorHint="#94A3B8"
-            android:textSize="15sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Analisis Berita"
+                android:textColor="#191D2B"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-        <!-- ================================================= -->
-        <!-- CONTENT -->
-        <!-- ================================================= -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Masukkan judul dan isi berita yang ingin dianalisis."
+                android:textColor="#7A8193"
+                android:textSize="13sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Isi Berita"
-            android:textColor="#1E293B"
-            android:textSize="15sp"
-            android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/edtContent"
-            android:layout_width="match_parent"
-            android:layout_height="170dp"
-            android:layout_marginTop="8dp"
-            android:background="@android:drawable/edit_text"
-            android:gravity="top|start"
-            android:hint="Masukkan isi berita yang ingin dianalisis..."
-            android:inputType="textCapSentences|textMultiLine"
-            android:padding="14dp"
-            android:scrollbars="vertical"
-            android:textColor="#0F172A"
-            android:textColorHint="#94A3B8"
-            android:textSize="15sp" />
+            <!-- TITLE -->
 
-        <!-- ================================================= -->
-        <!-- DETECT BUTTON -->
-        <!-- ================================================= -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Judul berita"
+                android:textColor="#33394B"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnDetect"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="24dp"
-            android:backgroundTint="#4F46E5"
-            android:text="DETEKSI BERITA"
-            android:textColor="#FFFFFF"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            <EditText
+                android:id="@+id/edtTitle"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_input"
+                android:hint="Masukkan judul berita"
+                android:inputType="textCapSentences"
+                android:maxLines="2"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:textColor="#1D2233"
+                android:textColorHint="#A1A7B5"
+                android:textSize="14sp" />
 
-        <!-- ================================================= -->
-        <!-- HISTORY BUTTON -->
-        <!-- ================================================= -->
 
-        <Button
-            android:id="@+id/btnHistory"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginTop="10dp"
-            android:backgroundTint="#334155"
-            android:text="LIHAT RIWAYAT"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            <!-- CONTENT -->
 
-        <Button
-            android:id="@+id/btnReset"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:backgroundTint="#E2E8F0"
-            android:text="BERSIHKAN FORM"
-            android:textColor="#334155"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Isi berita"
+                android:textColor="#33394B"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edtContent"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_input"
+                android:gravity="top|start"
+                android:hint="Tempel atau ketik isi berita di sini..."
+                android:inputType="textCapSentences|textMultiLine"
+                android:padding="15dp"
+                android:scrollbars="vertical"
+                android:textColor="#1D2233"
+                android:textColorHint="#A1A7B5"
+                android:textSize="14sp" />
+
+
+            <!-- DETECT BUTTON -->
+
+            <Button
+                android:id="@+id/btnDetect"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_button_primary"
+                android:backgroundTint="@null"
+                android:fontFamily="sans-serif-medium"
+                android:text="ANALISIS BERITA"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
 
         <!-- ================================================= -->
         <!-- RESULT -->
@@ -175,10 +231,9 @@
             android:id="@+id/resultContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="24dp"
-            android:background="#FFFFFF"
-            android:elevation="4dp"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_result_real"
+            android:elevation="1dp"
             android:orientation="vertical"
             android:padding="20dp"
             android:visibility="gone">
@@ -187,30 +242,112 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="HASIL ANALISIS"
-                android:textColor="#64748B"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textColor="#71788A"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
 
             <TextView
                 android:id="@+id/txtResult"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="FAKE NEWS"
-                android:textColor="#DC2626"
-                android:textSize="26sp"
+                android:layout_marginTop="7dp"
+                android:text="REAL NEWS"
+                android:textColor="#15803D"
+                android:textSize="27sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtDetectedLanguage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="#34394A"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtModelInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Linear SVM • Accuracy 98.95%"
-                android:textColor="#64748B"
-                android:textSize="14sp" />
+                android:layout_marginTop="5dp"
+                android:textColor="#6F7689"
+                android:textSize="13sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="14dp"
+                android:background="#E4E7EE" />
+
+            <TextView
+                android:id="@+id/txtDisclaimer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="2dp"
+                android:textColor="#737A8B"
+                android:textSize="12sp" />
 
         </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- ACTIONS -->
+        <!-- ================================================= -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnHistory"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_secondary"
+                android:backgroundTint="@null"
+                android:text="Riwayat"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnReset"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_light"
+                android:backgroundTint="@null"
+                android:text="Bersihkan"
+                android:textAllCaps="false"
+                android:textColor="#42485A"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+
+        <!-- ================================================= -->
+        <!-- FOOTER -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:text="Prediksi AI membantu menganalisis pola teks dan bukan pengganti verifikasi fakta."
+            android:textColor="#9298A8"
+            android:textSize="11sp" />
 
     </LinearLayout>
 
