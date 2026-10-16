@@ -12,25 +12,27 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.fakenewsdetection.network.ApiClient
-import com.example.fakenewsdetection.network.CreateHistoryResponse
-import com.example.fakenewsdetection.network.DetectionRequest
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
     // =========================================================
-    // VIEWS
+    // INPUT
     // =========================================================
 
     private lateinit var edtTitle: EditText
     private lateinit var edtContent: EditText
 
+    // =========================================================
+    // BUTTON
+    // =========================================================
+
     private lateinit var btnDetect: Button
     private lateinit var btnHistory: Button
     private lateinit var btnReset: Button
+
+    // =========================================================
+    // RESULT
+    // =========================================================
 
     private lateinit var txtModelStatus: TextView
     private lateinit var txtResult: TextView
@@ -41,117 +43,154 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resultContainer: LinearLayout
 
     // =========================================================
-    // ML
+    // BOTTOM NAVIGATION
+    // =========================================================
+
+    private lateinit var navHome: LinearLayout
+    private lateinit var navDetection: LinearLayout
+    private lateinit var navHistory: LinearLayout
+    private lateinit var navGuide: LinearLayout
+
+    // =========================================================
+    // MACHINE LEARNING
     // =========================================================
 
     private lateinit var classifier: FakeNewsClassifier
 
-    private var modelReady = false
+    private var modelReady =
+        false
 
+    // =========================================================
+    // LOCAL HISTORY
+    // =========================================================
+
+    private lateinit var historyManager: LocalHistoryManager
 
     // =========================================================
     // ON CREATE
     // =========================================================
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_main)
-
-        window.statusBarColor =
-            Color.parseColor("#F6F7FB")
-
-        window.navigationBarColor =
-            Color.parseColor("#FFFFFF")
+        setContentView(
+            R.layout.activity_main
+        )
 
         initializeViews()
+
+        historyManager =
+            LocalHistoryManager(
+                applicationContext
+            )
 
         resultContainer.visibility =
             View.GONE
 
         setupListeners()
 
+        setupBottomNavigation()
+
         loadMachineLearningModel()
     }
 
-
     // =========================================================
-    // INITIALIZE VIEWS
+    // INITIALIZE VIEW
     // =========================================================
 
     private fun initializeViews() {
 
         edtTitle =
-            findViewById(R.id.edtTitle)
+            findViewById(
+                R.id.edtTitle
+            )
 
         edtContent =
-            findViewById(R.id.edtContent)
+            findViewById(
+                R.id.edtContent
+            )
 
         btnDetect =
-            findViewById(R.id.btnDetect)
+            findViewById(
+                R.id.btnDetect
+            )
 
         btnHistory =
-            findViewById(R.id.btnHistory)
+            findViewById(
+                R.id.btnHistory
+            )
 
         btnReset =
-            findViewById(R.id.btnReset)
+            findViewById(
+                R.id.btnReset
+            )
 
         txtModelStatus =
-            findViewById(R.id.txtModelStatus)
+            findViewById(
+                R.id.txtModelStatus
+            )
 
         txtResult =
-            findViewById(R.id.txtResult)
+            findViewById(
+                R.id.txtResult
+            )
 
         txtDetectedLanguage =
-            findViewById(R.id.txtDetectedLanguage)
+            findViewById(
+                R.id.txtDetectedLanguage
+            )
 
         txtModelInfo =
-            findViewById(R.id.txtModelInfo)
+            findViewById(
+                R.id.txtModelInfo
+            )
 
         txtDisclaimer =
-            findViewById(R.id.txtDisclaimer)
+            findViewById(
+                R.id.txtDisclaimer
+            )
 
         resultContainer =
-            findViewById(R.id.resultContainer)
+            findViewById(
+                R.id.resultContainer
+            )
+
+        navHome =
+            findViewById(
+                R.id.navHome
+            )
+
+        navDetection =
+            findViewById(
+                R.id.navDetection
+            )
+
+        navHistory =
+            findViewById(
+                R.id.navHistory
+            )
+
+        navGuide =
+            findViewById(
+                R.id.navGuide
+            )
     }
 
-
     // =========================================================
-    // BUTTON LISTENERS
+    // MAIN BUTTON LISTENERS
     // =========================================================
 
     private fun setupListeners() {
-
-        // -----------------------------------------------------
-        // DETECT
-        // -----------------------------------------------------
 
         btnDetect.setOnClickListener {
 
             detectButtonClicked()
         }
 
-
-        // -----------------------------------------------------
-        // HISTORY
-        // -----------------------------------------------------
-
         btnHistory.setOnClickListener {
 
-            val intent =
-                Intent(
-                    this,
-                    HistoryActivity::class.java
-                )
-
-            startActivity(intent)
+            openHistory()
         }
-
-
-        // -----------------------------------------------------
-        // RESET
-        // -----------------------------------------------------
 
         btnReset.setOnClickListener {
 
@@ -159,6 +198,87 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // =========================================================
+    // BOTTOM NAVIGATION
+    // =========================================================
+
+    private fun setupBottomNavigation() {
+
+        // -----------------------------------------------------
+        // HOME
+        // -----------------------------------------------------
+
+        navHome.setOnClickListener {
+
+            val intent =
+                Intent(
+                    this,
+                    HomeActivity::class.java
+                ).apply {
+
+                    addFlags(
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    )
+                }
+
+            startActivity(
+                intent
+            )
+
+            finish()
+        }
+
+        // -----------------------------------------------------
+        // DETECTION
+        // -----------------------------------------------------
+
+        navDetection.setOnClickListener {
+
+            // Sudah berada di halaman Deteksi
+        }
+
+        // -----------------------------------------------------
+        // HISTORY
+        // -----------------------------------------------------
+
+        navHistory.setOnClickListener {
+
+            openHistory()
+        }
+
+        // -----------------------------------------------------
+        // GUIDE
+        // -----------------------------------------------------
+
+        navGuide.setOnClickListener {
+
+            startActivity(
+                Intent(
+                    this,
+                    GuideActivity::class.java
+                )
+            )
+
+            finish()
+        }
+    }
+
+    // =========================================================
+    // OPEN HISTORY
+    // =========================================================
+
+    private fun openHistory() {
+
+        startActivity(
+            Intent(
+                this,
+                HistoryActivity::class.java
+            )
+        )
+
+        finish()
+    }
 
     // =========================================================
     // DETECT BUTTON
@@ -176,10 +296,11 @@ class MainActivity : AppCompatActivity() {
                 .toString()
                 .trim()
 
+        edtTitle.error =
+            null
 
-        edtTitle.error = null
-        edtContent.error = null
-
+        edtContent.error =
+            null
 
         // -----------------------------------------------------
         // MODEL READY
@@ -196,7 +317,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-
         // -----------------------------------------------------
         // TITLE VALIDATION
         // -----------------------------------------------------
@@ -210,7 +330,6 @@ class MainActivity : AppCompatActivity() {
 
             return
         }
-
 
         // -----------------------------------------------------
         // CONTENT VALIDATION
@@ -226,9 +345,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-
         hideKeyboard()
-
 
         detectNews(
             title = title,
@@ -236,16 +353,17 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-
     // =========================================================
-    // LOAD MACHINE LEARNING
+    // LOAD MACHINE LEARNING MODEL
     // =========================================================
 
     private fun loadMachineLearningModel() {
 
-        modelReady = false
+        modelReady =
+            false
 
-        btnDetect.isEnabled = false
+        btnDetect.isEnabled =
+            false
 
         btnDetect.text =
             "Memuat model..."
@@ -253,13 +371,11 @@ class MainActivity : AppCompatActivity() {
         txtModelStatus.text =
             "Menyiapkan model offline..."
 
-
         Thread {
 
             Process.setThreadPriority(
                 Process.THREAD_PRIORITY_BACKGROUND
             )
-
 
             try {
 
@@ -267,7 +383,6 @@ class MainActivity : AppCompatActivity() {
                     FakeNewsClassifier(
                         applicationContext
                     )
-
 
                 runOnUiThread {
 
@@ -286,7 +401,6 @@ class MainActivity : AppCompatActivity() {
                     txtModelStatus.text =
                         "2 model aktif • Bahasa dipilih otomatis"
                 }
-
 
             } catch (e: Exception) {
 
@@ -321,7 +435,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     // =========================================================
     // DETECT NEWS
     // =========================================================
@@ -337,19 +450,17 @@ class MainActivity : AppCompatActivity() {
         btnDetect.text =
             "Menganalisis..."
 
-
         Thread {
 
             Process.setThreadPriority(
                 Process.THREAD_PRIORITY_BACKGROUND
             )
 
-
             try {
 
-                // =================================================
+                // =============================================
                 // AUTO LANGUAGE + AUTO MODEL
-                // =================================================
+                // =============================================
 
                 val result =
                     classifier.predictAuto(
@@ -357,39 +468,28 @@ class MainActivity : AppCompatActivity() {
                         content
                     )
 
-
                 runOnUiThread {
 
                     showPrediction(
                         result
                     )
 
-
                     val predictionText =
                         when (result.label) {
 
-                            FakeNewsClassifier.LABEL_FAKE -> {
-
+                            FakeNewsClassifier.LABEL_FAKE ->
                                 "FAKE NEWS"
-                            }
 
-
-                            FakeNewsClassifier.LABEL_REAL -> {
-
+                            FakeNewsClassifier.LABEL_REAL ->
                                 "REAL NEWS"
-                            }
 
-
-                            else -> {
-
+                            else ->
                                 "UNCERTAIN"
-                            }
                         }
 
-
-                    // =================================================
-                    // SAVE HISTORY
-                    // =================================================
+                    // =========================================
+                    // SAVE LOCAL HISTORY
+                    // =========================================
 
                     saveDetectionHistory(
                         title = title,
@@ -398,14 +498,12 @@ class MainActivity : AppCompatActivity() {
                         score = result.score
                     )
 
-
                     btnDetect.isEnabled =
                         true
 
                     btnDetect.text =
                         "Analisis Berita"
                 }
-
 
             } catch (e: Exception) {
 
@@ -416,7 +514,6 @@ class MainActivity : AppCompatActivity() {
 
                     btnDetect.text =
                         "Analisis Berita"
-
 
                     Toast.makeText(
                         this,
@@ -435,7 +532,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     // =========================================================
     // SHOW RESULT
     // =========================================================
@@ -445,7 +541,7 @@ class MainActivity : AppCompatActivity() {
     ) {
 
         // =====================================================
-        // RESULT LABEL
+        // LABEL
         // =====================================================
 
         when (result.label) {
@@ -467,7 +563,6 @@ class MainActivity : AppCompatActivity() {
                     )
             }
 
-
             FakeNewsClassifier.LABEL_REAL -> {
 
                 txtResult.text =
@@ -484,7 +579,6 @@ class MainActivity : AppCompatActivity() {
                         R.drawable.bg_result_real
                     )
             }
-
 
             else -> {
 
@@ -504,9 +598,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         // =====================================================
-        // LANGUAGE + MODEL INFO
+        // LANGUAGE + MODEL
         // =====================================================
 
         when (result.language) {
@@ -525,7 +618,6 @@ class MainActivity : AppCompatActivity() {
                             "verifikasi fakta secara real-time."
             }
 
-
             FakeNewsClassifier.ModelLanguage.ENGLISH -> {
 
                 txtDetectedLanguage.text =
@@ -540,9 +632,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         // =====================================================
-        // SHOW RESULT CARD
+        // SHOW RESULT
         // =====================================================
 
         resultContainer.visibility =
@@ -558,6 +649,35 @@ class MainActivity : AppCompatActivity() {
             .start()
     }
 
+    // =========================================================
+    // SAVE LOCAL HISTORY
+    // =========================================================
+
+    private fun saveDetectionHistory(
+        title: String,
+        content: String,
+        prediction: String,
+        score: Double
+    ) {
+
+        try {
+
+            historyManager.saveHistory(
+                title = title,
+                content = content,
+                prediction = prediction,
+                score = score
+            )
+
+        } catch (e: Exception) {
+
+            Toast.makeText(
+                this,
+                "Prediksi berhasil, tetapi riwayat gagal disimpan.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
 
     // =========================================================
     // RESET FORM
@@ -566,10 +686,14 @@ class MainActivity : AppCompatActivity() {
     private fun resetForm() {
 
         edtTitle.text.clear()
+
         edtContent.text.clear()
 
-        edtTitle.error = null
-        edtContent.error = null
+        edtTitle.error =
+            null
+
+        edtContent.error =
+            null
 
         resultContainer.visibility =
             View.GONE
@@ -588,13 +712,8 @@ class MainActivity : AppCompatActivity() {
 
         edtTitle.requestFocus()
 
-        Toast.makeText(
-            this,
-            "Form berhasil dibersihkan",
-            Toast.LENGTH_SHORT
-        ).show()
+        hideKeyboard()
     }
-
 
     // =========================================================
     // HIDE KEYBOARD
@@ -607,70 +726,10 @@ class MainActivity : AppCompatActivity() {
                 INPUT_METHOD_SERVICE
             ) as InputMethodManager
 
-
         inputMethodManager
             .hideSoftInputFromWindow(
                 currentFocus?.windowToken,
                 0
-            )
-    }
-
-
-    // =========================================================
-    // SAVE HISTORY
-    // =========================================================
-
-    private fun saveDetectionHistory(
-        title: String,
-        content: String,
-        prediction: String,
-        score: Double
-    ) {
-
-        val request =
-            DetectionRequest(
-                title = title,
-                content = content,
-                prediction = prediction,
-                score = score
-            )
-
-
-        ApiClient.apiService
-            .createHistory(
-                request
-            )
-            .enqueue(
-
-                object :
-                    Callback<CreateHistoryResponse> {
-
-
-                    override fun onResponse(
-                        call: Call<CreateHistoryResponse>,
-                        response: Response<CreateHistoryResponse>
-                    ) {
-
-                        if (!response.isSuccessful) {
-
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Prediksi berhasil, tetapi riwayat belum tersimpan.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-
-
-                    override fun onFailure(
-                        call: Call<CreateHistoryResponse>,
-                        t: Throwable
-                    ) {
-
-                        // Tidak perlu menggagalkan hasil prediksi.
-                        // Model tetap dapat digunakan secara offline.
-                    }
-                }
             )
     }
 }

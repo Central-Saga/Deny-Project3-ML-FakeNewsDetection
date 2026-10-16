@@ -1,0 +1,727 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F8FC"
+    android:orientation="vertical">
+
+
+    <!-- ===================================================== -->
+    <!-- CONTENT -->
+    <!-- ===================================================== -->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="22dp"
+            android:paddingTop="24dp"
+            android:paddingEnd="22dp"
+            android:paddingBottom="32dp">
+
+
+            <!-- ================================================= -->
+            <!-- HEADER -->
+            <!-- ================================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_logo"
+                    android:gravity="center"
+                    android:text="FN"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Panduan"
+                        android:textColor="#191D2B"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Cara penggunaan dan informasi model"
+                        android:textColor="#858B9B"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- ABOUT APP -->
+            <!-- ================================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_card"
+                android:elevation="1dp"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TENTANG APLIKASI"
+                    android:textColor="#5A54E8"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="FakeNews AI"
+                    android:textColor="#252938"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="FakeNews AI adalah aplikasi klasifikasi teks berita berbasis Machine Learning. Aplikasi menganalisis pola teks dan memberikan prediksi REAL NEWS, FAKE NEWS, atau UNCERTAIN."
+                    android:textColor="#73798A"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- HOW TO USE -->
+            <!-- ================================================= -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="Cara Menggunakan"
+                android:textColor="#191D2B"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+
+            <!-- STEP 1 -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/bg_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="17dp">
+
+                <TextView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_input"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textColor="#5A54E8"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Masukkan Berita"
+                        android:textColor="#252938"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Masukkan judul dan isi berita yang ingin dianalisis."
+                        android:textColor="#858B9B"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- STEP 2 -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="17dp">
+
+                <TextView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_input"
+                    android:gravity="center"
+                    android:text="2"
+                    android:textColor="#5A54E8"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Deteksi Bahasa Otomatis"
+                        android:textColor="#252938"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Aplikasi menentukan apakah teks menggunakan Bahasa Indonesia atau English."
+                        android:textColor="#858B9B"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- STEP 3 -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="17dp">
+
+                <TextView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_input"
+                    android:gravity="center"
+                    android:text="3"
+                    android:textColor="#5A54E8"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Model Menganalisis"
+                        android:textColor="#252938"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Model yang sesuai akan dipilih dan menganalisis pola teks berita."
+                        android:textColor="#858B9B"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- STEP 4 -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="17dp">
+
+                <TextView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_input"
+                    android:gravity="center"
+                    android:text="4"
+                    android:textColor="#5A54E8"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lihat Hasil"
+                        android:textColor="#252938"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Hasil prediksi ditampilkan dan otomatis disimpan ke riwayat lokal."
+                        android:textColor="#858B9B"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- RESULT MEANING -->
+            <!-- ================================================= -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="Arti Hasil Analisis"
+                android:textColor="#191D2B"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+
+            <!-- REAL -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/bg_result_real"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓  REAL NEWS"
+                    android:textColor="#15803D"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Pola teks lebih dekat dengan karakteristik berita kelas REAL yang dipelajari model."
+                    android:textColor="#4F6857"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+
+            <!-- FAKE -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_result_fake"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="!  FAKE NEWS"
+                    android:textColor="#C62828"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Pola teks lebih dekat dengan karakteristik berita kelas FAKE yang dipelajari model."
+                    android:textColor="#795656"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+
+            <!-- UNCERTAIN -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_result_uncertain"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="BELUM YAKIN"
+                    android:textColor="#B45309"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Skor model berada di area yang belum cukup kuat untuk menghasilkan prediksi REAL atau FAKE."
+                    android:textColor="#796547"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- MODELS -->
+            <!-- ================================================= -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="Model yang Digunakan"
+                android:textColor="#191D2B"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="19dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Bahasa Indonesia"
+                    android:textColor="#252938"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Political v3"
+                    android:textColor="#5A54E8"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="TF-IDF + Linear SVM • terutama dilatih menggunakan berita politik Indonesia."
+                    android:textColor="#858B9B"
+                    android:textSize="12sp" />
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="17dp"
+                    android:layout_marginBottom="17dp"
+                    android:background="#ECEEF3" />
+
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="English"
+                    android:textColor="#252938"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="English v1.3"
+                    android:textColor="#5A54E8"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="TF-IDF + Linear SVM untuk klasifikasi teks berita berbahasa Inggris."
+                    android:textColor="#858B9B"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- OFFLINE -->
+            <!-- ================================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="19dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Mode Offline"
+                    android:textColor="#252938"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="7dp"
+                    android:lineSpacingExtra="3dp"
+                    android:text="Model Machine Learning dan riwayat analisis disimpan di perangkat. Prediksi tidak memerlukan server FastAPI atau PostgreSQL."
+                    android:textColor="#858B9B"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+
+            <!-- ================================================= -->
+            <!-- IMPORTANT DISCLAIMER -->
+            <!-- ================================================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_result_uncertain"
+                android:orientation="vertical"
+                android:padding="19dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Penting"
+                    android:textColor="#B45309"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="7dp"
+                    android:lineSpacingExtra="3dp"
+                    android:text="Hasil aplikasi merupakan prediksi berdasarkan pola teks yang dipelajari model. Hasil tidak boleh dianggap sebagai verifikasi fakta secara real-time."
+                    android:textColor="#765D3E"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:text="FakeNews AI • Machine Learning Project"
+                android:textColor="#A0A5B2"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+    <!-- ===================================================== -->
+    <!-- BOTTOM NAVIGATION -->
+    <!-- ===================================================== -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="76dp"
+        android:background="#FFFFFF"
+        android:elevation="12dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
+
+
+        <!-- HOME -->
+
+        <LinearLayout
+            android:id="@+id/navHome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⌂"
+                android:textColor="#969CAB"
+                android:textSize="25sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Beranda"
+                android:textColor="#969CAB"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+
+        <!-- DETECTION -->
+
+        <LinearLayout
+            android:id="@+id/navDetection"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⌕"
+                android:textColor="#969CAB"
+                android:textSize="25sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Deteksi"
+                android:textColor="#969CAB"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+
+        <!-- HISTORY -->
+
+        <LinearLayout
+            android:id="@+id/navHistory"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="◷"
+                android:textColor="#969CAB"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Riwayat"
+                android:textColor="#969CAB"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+
+        <!-- GUIDE ACTIVE -->
+
+        <LinearLayout
+            android:id="@+id/navGuide"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ⓘ"
+                android:textColor="#5A54E8"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Panduan"
+                android:textColor="#5A54E8"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

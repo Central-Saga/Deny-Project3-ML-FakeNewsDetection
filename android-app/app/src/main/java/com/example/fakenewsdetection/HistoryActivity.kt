@@ -1,80 +1,208 @@
 package com.example.fakenewsdetection
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
-import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.example.fakenewsdetection.network.ApiClient
-import com.example.fakenewsdetection.network.DeleteHistoryResponse
-import com.example.fakenewsdetection.network.DetectionHistory
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class HistoryActivity : AppCompatActivity() {
 
-    private lateinit var btnRefresh: Button
-    private lateinit var btnBackToDetection: Button
+    // =========================================================
+    // VIEW
+    // =========================================================
 
-    private lateinit var progressBar: ProgressBar
-    private lateinit var txtEmpty: TextView
     private lateinit var historyContainer: LinearLayout
+    private lateinit var emptyState: LinearLayout
+
+    private lateinit var txtHistoryCount: TextView
+    private lateinit var btnClearHistory: TextView
+
+    // =========================================================
+    // BOTTOM NAVIGATION
+    // =========================================================
+
+    private lateinit var navHome: LinearLayout
+    private lateinit var navDetection: LinearLayout
+    private lateinit var navHistory: LinearLayout
+    private lateinit var navGuide: LinearLayout
+
+    // =========================================================
+    // LOCAL HISTORY
+    // =========================================================
+
+    private lateinit var historyManager: LocalHistoryManager
+
+    // =========================================================
+    // ON CREATE
+    // =========================================================
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_history)
+        setContentView(
+            R.layout.activity_history
+        )
 
-        // =====================================================
-        // VIEW INITIALIZATION
-        // =====================================================
+        historyManager =
+            LocalHistoryManager(
+                applicationContext
+            )
 
-        btnRefresh =
-            findViewById(R.id.btnRefresh)
+        initializeViews()
 
-        btnBackToDetection =
-            findViewById(R.id.btnBackToDetection)
+        setupListeners()
 
-        progressBar =
-            findViewById(R.id.progressBar)
+        loadHistory()
+    }
 
-        txtEmpty =
-            findViewById(R.id.txtEmpty)
+    // =========================================================
+    // ON RESUME
+    // =========================================================
+
+    override fun onResume() {
+        super.onResume()
+
+        loadHistory()
+    }
+
+    // =========================================================
+    // INITIALIZE VIEW
+    // =========================================================
+
+    private fun initializeViews() {
 
         historyContainer =
-            findViewById(R.id.historyContainer)
+            findViewById(
+                R.id.historyContainer
+            )
 
-        // =====================================================
-        // BUTTON REFRESH
-        // =====================================================
+        emptyState =
+            findViewById(
+                R.id.emptyState
+            )
 
-        btnRefresh.setOnClickListener {
-            loadHistory()
+        txtHistoryCount =
+            findViewById(
+                R.id.txtHistoryCount
+            )
+
+        btnClearHistory =
+            findViewById(
+                R.id.btnClearHistory
+            )
+
+        navHome =
+            findViewById(
+                R.id.navHome
+            )
+
+        navDetection =
+            findViewById(
+                R.id.navDetection
+            )
+
+        navHistory =
+            findViewById(
+                R.id.navHistory
+            )
+
+        navGuide =
+            findViewById(
+                R.id.navGuide
+            )
+    }
+
+    // =========================================================
+    // LISTENERS
+    // =========================================================
+
+    private fun setupListeners() {
+
+        // -----------------------------------------------------
+        // CLEAR ALL
+        // -----------------------------------------------------
+
+        btnClearHistory.setOnClickListener {
+
+            showClearHistoryDialog()
         }
 
-        // =====================================================
-        // BUTTON BACK TO DETECTION
-        // =====================================================
+        // -----------------------------------------------------
+        // HOME
+        // -----------------------------------------------------
 
-        btnBackToDetection.setOnClickListener {
+        navHome.setOnClickListener {
 
-            // Menutup HistoryActivity
-            // dan kembali ke MainActivity
+            val intent =
+                Intent(
+                    this,
+                    HomeActivity::class.java
+                ).apply {
+
+                    addFlags(
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    )
+                }
+
+            startActivity(
+                intent
+            )
+
             finish()
         }
 
-        // Load data pertama kali
-        loadHistory()
+        // -----------------------------------------------------
+        // DETECTION
+        // -----------------------------------------------------
+
+        navDetection.setOnClickListener {
+
+            startActivity(
+                Intent(
+                    this,
+                    MainActivity::class.java
+                )
+            )
+
+            finish()
+        }
+
+        // -----------------------------------------------------
+        // HISTORY
+        // -----------------------------------------------------
+
+        navHistory.setOnClickListener {
+
+            // Sudah berada di halaman Riwayat
+        }
+
+        // -----------------------------------------------------
+        // GUIDE
+        // -----------------------------------------------------
+
+        navGuide.setOnClickListener {
+
+            startActivity(
+                Intent(
+                    this,
+                    GuideActivity::class.java
+                )
+            )
+
+            finish()
+        }
     }
 
     // =========================================================
@@ -83,92 +211,75 @@ class HistoryActivity : AppCompatActivity() {
 
     private fun loadHistory() {
 
-        progressBar.visibility =
-            View.VISIBLE
-
-        txtEmpty.visibility =
-            View.GONE
+        val history =
+            historyManager.getHistory()
 
         historyContainer.removeAllViews()
 
-        ApiClient.apiService
-            .getHistory()
-            .enqueue(
-                object : Callback<List<DetectionHistory>> {
+        txtHistoryCount.text =
+            when {
 
-                    override fun onResponse(
-                        call: Call<List<DetectionHistory>>,
-                        response: Response<List<DetectionHistory>>
-                    ) {
+                history.isEmpty() -> {
 
-                        progressBar.visibility =
-                            View.GONE
-
-                        if (!response.isSuccessful) {
-
-                            Toast.makeText(
-                                this@HistoryActivity,
-                                "Gagal mengambil riwayat. HTTP ${response.code()}",
-                                Toast.LENGTH_LONG
-                            ).show()
-
-                            return
-                        }
-
-                        val histories =
-                            response.body().orEmpty()
-
-                        if (histories.isEmpty()) {
-
-                            txtEmpty.visibility =
-                                View.VISIBLE
-
-                            return
-                        }
-
-                        histories.forEach { history ->
-
-                            addHistoryItem(
-                                history
-                            )
-                        }
-                    }
-
-                    override fun onFailure(
-                        call: Call<List<DetectionHistory>>,
-                        t: Throwable
-                    ) {
-
-                        progressBar.visibility =
-                            View.GONE
-
-                        Toast.makeText(
-                            this@HistoryActivity,
-                            "API tidak dapat dihubungi: ${t.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    "Belum ada hasil analisis"
                 }
+
+                history.size == 1 -> {
+
+                    "1 hasil analisis tersimpan"
+                }
+
+                else -> {
+
+                    "${history.size} hasil analisis tersimpan"
+                }
+            }
+
+        if (history.isEmpty()) {
+
+            emptyState.visibility =
+                View.VISIBLE
+
+            historyContainer.visibility =
+                View.GONE
+
+            btnClearHistory.visibility =
+                View.GONE
+
+            return
+        }
+
+        emptyState.visibility =
+            View.GONE
+
+        historyContainer.visibility =
+            View.VISIBLE
+
+        btnClearHistory.visibility =
+            View.VISIBLE
+
+        history.forEach { item ->
+
+            historyContainer.addView(
+                createHistoryCard(
+                    item
+                )
             )
+        }
     }
 
     // =========================================================
-    // ADD HISTORY CARD
+    // CREATE CARD
     // =========================================================
 
-    private fun addHistoryItem(
+    private fun createHistoryCard(
         history: DetectionHistory
-    ) {
-
-        val isFake =
-            history.prediction == "FAKE NEWS"
-
-        // =====================================================
-        // CARD CONTAINER
-        // =====================================================
+    ): View {
 
         val card =
-            LinearLayout(this).apply {
+            LinearLayout(
+                this
+            ).apply {
 
                 orientation =
                     LinearLayout.VERTICAL
@@ -180,89 +291,59 @@ class HistoryActivity : AppCompatActivity() {
                     dp(18)
                 )
 
-                val params =
+                background =
+                    createCardBackground()
+
+                elevation =
+                    dp(1).toFloat()
+
+                layoutParams =
                     LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
+                    ).apply {
 
-                params.setMargins(
-                    0,
-                    0,
-                    0,
-                    dp(14)
-                )
-
-                layoutParams =
-                    params
-
-                background =
-                    createRoundedBackground(
-                        color = Color.WHITE,
-                        radius = 18f
-                    )
-
-                elevation =
-                    dp(3).toFloat()
+                        bottomMargin =
+                            dp(14)
+                    }
             }
 
         // =====================================================
-        // TITLE
+        // TOP ROW
         // =====================================================
 
-        val title =
-            TextView(this).apply {
+        val topRow =
+            LinearLayout(
+                this
+            ).apply {
 
-                text =
-                    history.title
+                orientation =
+                    LinearLayout.HORIZONTAL
 
-                textSize =
-                    17f
-
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
-
-                setTextColor(
-                    Color.parseColor(
-                        "#0F172A"
-                    )
-                )
+                gravity =
+                    Gravity.CENTER_VERTICAL
             }
 
         // =====================================================
-        // STATUS BADGE
+        // RESULT BADGE
         // =====================================================
 
-        val prediction =
-            TextView(this).apply {
+        val badge =
+            TextView(
+                this
+            ).apply {
 
                 text =
                     history.prediction
 
                 textSize =
-                    13f
+                    11f
 
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
+                typeface =
+                    Typeface.DEFAULT_BOLD
 
-                setTextColor(
-                    if (isFake) {
-
-                        Color.parseColor(
-                            "#B91C1C"
-                        )
-
-                    } else {
-
-                        Color.parseColor(
-                            "#15803D"
-                        )
-                    }
-                )
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     dp(12),
@@ -271,70 +352,16 @@ class HistoryActivity : AppCompatActivity() {
                     dp(7)
                 )
 
-                background =
-                    createRoundedBackground(
-                        color =
-                            if (isFake) {
-
-                                Color.parseColor(
-                                    "#FEE2E2"
-                                )
-
-                            } else {
-
-                                Color.parseColor(
-                                    "#DCFCE7"
-                                )
-                            },
-                        radius = 30f
-                    )
-
-                val badgeParams =
-                    LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-
-                badgeParams.setMargins(
-                    0,
-                    dp(12),
-                    0,
-                    dp(10)
-                )
-
-                layoutParams =
-                    badgeParams
-            }
-
-        // =====================================================
-        // SCORE
-        // =====================================================
-
-        val formattedScore =
-            history.score?.let {
-
-                String.format(
-                    Locale.US,
-                    "%.3f",
-                    it
-                )
-
-            } ?: "-"
-
-        val score =
-            TextView(this).apply {
-
-                text =
-                    "Score Model: $formattedScore"
-
-                textSize =
-                    14f
-
                 setTextColor(
-                    Color.parseColor(
-                        "#475569"
+                    getPredictionTextColor(
+                        history.prediction
                     )
                 )
+
+                background =
+                    createPredictionBackground(
+                        history.prediction
+                    )
             }
 
         // =====================================================
@@ -342,236 +369,275 @@ class HistoryActivity : AppCompatActivity() {
         // =====================================================
 
         val date =
-            TextView(this).apply {
+            TextView(
+                this
+            ).apply {
 
                 text =
-                    "Tanggal: ${formatDate(history.created_at)}"
+                    formatDate(
+                        history.timestamp
+                    )
+
+                textSize =
+                    11f
+
+                setTextColor(
+                    Color.parseColor(
+                        "#9095A4"
+                    )
+                )
+
+                gravity =
+                    Gravity.END
+
+                layoutParams =
+                    LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f
+                    ).apply {
+
+                        marginStart =
+                            dp(10)
+                    }
+            }
+
+        topRow.addView(
+            badge
+        )
+
+        topRow.addView(
+            date
+        )
+
+        card.addView(
+            topRow
+        )
+
+        // =====================================================
+        // TITLE
+        // =====================================================
+
+        val title =
+            TextView(
+                this
+            ).apply {
+
+                text =
+                    history.title.ifBlank {
+
+                        "Tanpa Judul"
+                    }
+
+                textSize =
+                    16f
+
+                typeface =
+                    Typeface.DEFAULT_BOLD
+
+                setTextColor(
+                    Color.parseColor(
+                        "#252938"
+                    )
+                )
+
+                maxLines =
+                    2
+
+                layoutParams =
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+
+                        topMargin =
+                            dp(14)
+                    }
+            }
+
+        card.addView(
+            title
+        )
+
+        // =====================================================
+        // CONTENT PREVIEW
+        // =====================================================
+
+        val content =
+            TextView(
+                this
+            ).apply {
+
+                text =
+                    history.content
 
                 textSize =
                     13f
 
                 setTextColor(
                     Color.parseColor(
-                        "#64748B"
+                        "#7A8090"
                     )
                 )
+
+                maxLines =
+                    3
+
+                layoutParams =
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+
+                        topMargin =
+                            dp(7)
+                    }
+            }
+
+        card.addView(
+            content
+        )
+
+        // =====================================================
+        // DELETE
+        // =====================================================
+
+        val deleteText =
+            TextView(
+                this
+            ).apply {
+
+                text =
+                    "Hapus"
+
+                textSize =
+                    12f
+
+                typeface =
+                    Typeface.DEFAULT_BOLD
+
+                setTextColor(
+                    Color.parseColor(
+                        "#C62828"
+                    )
+                )
+
+                gravity =
+                    Gravity.END
 
                 setPadding(
                     0,
-                    dp(5),
+                    dp(14),
                     0,
-                    dp(14)
+                    0
                 )
-            }
-
-        // =====================================================
-        // DELETE BUTTON
-        // =====================================================
-
-        val btnDelete =
-            Button(this).apply {
-
-                text =
-                    "HAPUS RIWAYAT"
-
-                textSize =
-                    13f
-
-                setTextColor(
-                    Color.WHITE
-                )
-
-                background =
-                    createRoundedBackground(
-                        color = Color.parseColor(
-                            "#DC2626"
-                        ),
-                        radius = 14f
-                    )
 
                 setOnClickListener {
 
-                    showDeleteConfirmation(
-                        historyId = history.id,
-                        title = history.title,
-                        button = this
+                    showDeleteDialog(
+                        history
                     )
                 }
             }
 
-        // =====================================================
-        // ADD VIEWS
-        // =====================================================
+        card.addView(
+            deleteText
+        )
 
-        card.addView(title)
-        card.addView(prediction)
-        card.addView(score)
-        card.addView(date)
-        card.addView(btnDelete)
-
-        historyContainer.addView(card)
+        return card
     }
 
     // =========================================================
-    // DELETE CONFIRMATION
+    // DELETE ONE
     // =========================================================
 
-    private fun showDeleteConfirmation(
-        historyId: Int,
-        title: String,
-        button: Button
+    private fun showDeleteDialog(
+        history: DetectionHistory
     ) {
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(
+            this
+        )
             .setTitle(
                 "Hapus Riwayat"
             )
             .setMessage(
-                "Apakah kamu yakin ingin menghapus riwayat:\n\n$title?"
+                "Hapus hasil analisis ini dari perangkat?"
             )
             .setNegativeButton(
-                "BATAL"
-            ) { dialog, _ ->
-
-                dialog.dismiss()
-            }
+                "Batal",
+                null
+            )
             .setPositiveButton(
-                "HAPUS"
-            ) { dialog, _ ->
+                "Hapus"
+            ) { _, _ ->
 
-                button.isEnabled =
-                    false
-
-                button.text =
-                    "MENGHAPUS..."
-
-                deleteHistory(
-                    id = historyId,
-                    button = button
+                historyManager.deleteHistory(
+                    history.id
                 )
 
-                dialog.dismiss()
+                loadHistory()
+
+                Toast.makeText(
+                    this,
+                    "Riwayat berhasil dihapus.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
             .show()
     }
 
     // =========================================================
-    // DELETE HISTORY
+    // CLEAR ALL
     // =========================================================
 
-    private fun deleteHistory(
-        id: Int,
-        button: Button
-    ) {
+    private fun showClearHistoryDialog() {
 
-        ApiClient.apiService
-            .deleteHistory(id)
-            .enqueue(
-                object :
-                    Callback<DeleteHistoryResponse> {
+        if (
+            historyManager
+                .getHistory()
+                .isEmpty()
+        ) {
 
-                    override fun onResponse(
-                        call: Call<DeleteHistoryResponse>,
-                        response: Response<DeleteHistoryResponse>
-                    ) {
-
-                        if (response.isSuccessful) {
-
-                            Toast.makeText(
-                                this@HistoryActivity,
-                                "Riwayat berhasil dihapus",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                            loadHistory()
-
-                        } else {
-
-                            button.isEnabled =
-                                true
-
-                            button.text =
-                                "HAPUS RIWAYAT"
-
-                            Toast.makeText(
-                                this@HistoryActivity,
-                                "Gagal menghapus riwayat. HTTP ${response.code()}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-
-                    override fun onFailure(
-                        call: Call<DeleteHistoryResponse>,
-                        t: Throwable
-                    ) {
-
-                        button.isEnabled =
-                            true
-
-                        button.text =
-                            "HAPUS RIWAYAT"
-
-                        Toast.makeText(
-                            this@HistoryActivity,
-                            "API tidak dapat dihubungi: ${t.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-            )
-    }
-
-    // =========================================================
-    // FORMAT DATE
-    // =========================================================
-
-    private fun formatDate(
-        value: String
-    ): String {
-
-        return try {
-
-            val inputFormat =
-                SimpleDateFormat(
-                    "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
-                    Locale.US
-                )
-
-            val outputFormat =
-                SimpleDateFormat(
-                    "dd MMM yyyy, HH:mm",
-                    Locale.ENGLISH
-                )
-
-            val parsedDate =
-                inputFormat.parse(value)
-
-            if (parsedDate != null) {
-
-                outputFormat.format(
-                    parsedDate
-                )
-
-            } else {
-
-                value
-            }
-
-        } catch (e: Exception) {
-
-            value
+            return
         }
+
+        AlertDialog.Builder(
+            this
+        )
+            .setTitle(
+                "Hapus Semua Riwayat"
+            )
+            .setMessage(
+                "Semua hasil analisis yang tersimpan di perangkat akan dihapus."
+            )
+            .setNegativeButton(
+                "Batal",
+                null
+            )
+            .setPositiveButton(
+                "Hapus Semua"
+            ) { _, _ ->
+
+                historyManager.clearHistory()
+
+                loadHistory()
+
+                Toast.makeText(
+                    this,
+                    "Semua riwayat berhasil dihapus.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .show()
     }
 
     // =========================================================
-    // CREATE ROUNDED BACKGROUND
+    // CARD BACKGROUND
     // =========================================================
 
-    private fun createRoundedBackground(
-        color: Int,
-        radius: Float
-    ): GradientDrawable {
+    private fun createCardBackground():
+            GradientDrawable {
 
         return GradientDrawable().apply {
 
@@ -579,18 +645,139 @@ class HistoryActivity : AppCompatActivity() {
                 GradientDrawable.RECTANGLE
 
             setColor(
-                color
+                Color.WHITE
             )
 
             cornerRadius =
-                dp(
-                    radius.toInt()
-                ).toFloat()
+                dp(20).toFloat()
+
+            setStroke(
+                dp(1),
+                Color.parseColor(
+                    "#ECEEF4"
+                )
+            )
         }
     }
 
     // =========================================================
-    // DP CONVERTER
+    // PREDICTION BACKGROUND
+    // =========================================================
+
+    private fun createPredictionBackground(
+        prediction: String
+    ): GradientDrawable {
+
+        val backgroundColor =
+            when (
+                prediction.uppercase(
+                    Locale.ROOT
+                )
+            ) {
+
+                "REAL NEWS" -> {
+
+                    Color.parseColor(
+                        "#EAF8EE"
+                    )
+                }
+
+                "FAKE NEWS" -> {
+
+                    Color.parseColor(
+                        "#FDECEC"
+                    )
+                }
+
+                else -> {
+
+                    Color.parseColor(
+                        "#FFF6E3"
+                    )
+                }
+            }
+
+        return GradientDrawable().apply {
+
+            shape =
+                GradientDrawable.RECTANGLE
+
+            setColor(
+                backgroundColor
+            )
+
+            cornerRadius =
+                dp(20).toFloat()
+        }
+    }
+
+    // =========================================================
+    // RESULT TEXT COLOR
+    // =========================================================
+
+    private fun getPredictionTextColor(
+        prediction: String
+    ): Int {
+
+        return when (
+            prediction.uppercase(
+                Locale.ROOT
+            )
+        ) {
+
+            "REAL NEWS" -> {
+
+                Color.parseColor(
+                    "#15803D"
+                )
+            }
+
+            "FAKE NEWS" -> {
+
+                Color.parseColor(
+                    "#C62828"
+                )
+            }
+
+            else -> {
+
+                Color.parseColor(
+                    "#B45309"
+                )
+            }
+        }
+    }
+
+    // =========================================================
+    // FORMAT DATE
+    // =========================================================
+
+    private fun formatDate(
+        timestamp: Long
+    ): String {
+
+        if (timestamp <= 0L) {
+
+            return ""
+        }
+
+        val formatter =
+            SimpleDateFormat(
+                "dd MMM yyyy • HH:mm",
+                Locale.forLanguageTag(
+                    "id-ID"
+                )
+            )
+
+        return formatter.format(
+            Date(
+                timestamp
+            )
+        )
+    }
+
+    // =========================================================
+    // DP HELPER
     // =========================================================
 
     private fun dp(
