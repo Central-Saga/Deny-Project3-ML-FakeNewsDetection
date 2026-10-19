@@ -190,3 +190,30 @@ Notebook utama:
 
 \- `1` = REAL
 
+## Android Debug Build
+
+### Requirements
+- JDK 21 atau JDK yang kompatibel dengan konfigurasi Gradle
+- Android SDK (termasuk platform SDK 36.1)
+- Gradle Wrapper 9.3.1 (sudah tersedia dalam repository)
+
+### Build Instructions
+
+1. Clone repository.
+2. Masuk ke folder `android-app`.
+3. Konfigurasi Android SDK melalui `ANDROID_HOME` atau
+   `local.properties` (file ini tidak disimpan di Git).
+4. Jalankan:
+
+   Windows:
+   `.\gradlew.bat --no-daemon clean assembleDebug`
+
+5. APK debug tersedia di:
+   `android-app/app/build/outputs/apk/debug/app-debug.apk`
+
+### Verification
+
+Fresh clone build berhasil pada Windows 11.
+Build: SUCCESSFUL (33 detik).
+APK: berhasil dibuat.
+Git working tree: clean.
