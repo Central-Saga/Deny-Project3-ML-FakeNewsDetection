@@ -9,15 +9,36 @@
 # Python
 __pycache__/
 *.pyc
+venv/
+.venv/
+.env
 
 # Jupyter
 .ipynb_checkpoints/
 
-# Environment
-.env
-venv/
-.venv/
-android-app/local.properties
+# Android / Gradle
+**/build/
+**/.gradle/
+**/.kotlin/
+**/local.properties
+**/captures/
+**/.cxx/
+**/.externalNativeBuild/
 
+# Android build outputs
+*.apk
+*.aab
+*.aar
+*.hprof
+
+# Android Studio / IntelliJ
 .idea/
-android-app/.idea/
+*.iml
+
+# Signing secrets
+*.keystore
+*.jks
+
+# Operating system
+.DS_Store
+Thumbs.db
