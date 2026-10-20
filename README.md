@@ -217,3 +217,86 @@ Fresh clone build berhasil pada Windows 11.
 Build: SUCCESSFUL (33 detik).
 APK: berhasil dibuat.
 Git working tree: clean.
+---
+
+## Android Offline Machine Learning Inference
+
+Aplikasi Android Fake News Detection menggunakan model Machine Learning
+asli berbasis TF-IDF dan Linear Support Vector Machine (Linear SVM).
+
+Inferensi model dijalankan secara offline menggunakan ONNX Runtime
+Android, tanpa memerlukan koneksi internet atau API eksternal.
+
+### Model yang Digunakan
+
+Aplikasi mendukung dua model:
+
+1. English v1.3
+   - Model: fake_news_model_en_v13.onnx
+   - TF-IDF Word: 100.000 fitur
+   - TF-IDF Character: 50.000 fitur
+   - Algoritma: Linear SVM
+   - Mendukung hasil UNCERTAIN
+
+2. Indonesian Political v3
+   - Model: fake_news_model_id_political_v3.onnx
+   - TF-IDF Word: 100.000 fitur
+   - Algoritma: Linear SVM
+   - Terutama ditujukan untuk berita politik Indonesia
+
+Kedua model ONNX disimpan di:
+
+`android-app/app/src/main/assets/`
+
+### Arsitektur Inferensi
+
+Alur prediksi aplikasi:
+
+1. Pengguna memasukkan judul dan isi berita.
+2. Aplikasi mendeteksi bahasa secara otomatis.
+3. Teks diproses menggunakan preprocessing yang sesuai.
+4. Aplikasi membentuk vektor TF-IDF menggunakan vocabulary dan IDF dari JSON.
+5. ONNX Runtime menjalankan inferensi model Linear SVM.
+6. Skor prediksi diubah menjadi label FAKE, REAL, atau UNCERTAIN sesuai aturan model.
+7. Hasil ditampilkan dan disimpan dalam riwayat lokal.
+
+### Implementasi Android
+
+Bahasa pemrograman: Kotlin
+
+Komponen utama:
+
+- `FakeNewsClassifier.kt`: preprocessing, TF-IDF, deteksi bahasa, dan klasifikasi.
+- `OnnxSvmScorer.kt`: pemanggilan model melalui ONNX Runtime.
+- `MainActivity.kt`: input pengguna, prediksi, dan pengelolaan lifecycle model.
+
+Pemuatan model dan inferensi dilakukan melalui background worker
+agar tidak memblokir UI Android.
+
+### Label Prediksi
+
+Label yang digunakan aplikasi:
+
+- `0` = FAKE NEWS
+- `1` = REAL NEWS
+- `-1` = UNCERTAIN
+
+Model Indonesian Political v3 memiliki pemetaan label internal
+yang berbeda, sehingga output dikonversi menjadi label aplikasi.
+
+### Pengujian Integrasi
+
+Pengujian pada Android Emulator:
+
+- Android debug build berhasil.
+- Model Indonesia berhasil melakukan prediksi.
+- Model Inggris berhasil melakukan prediksi.
+- Hasil pada dua contoh pengujian sesuai dengan implementasi JSON sebelumnya.
+- Navigasi aplikasi berjalan tanpa crash pada pengujian akhir.
+
+Catatan: hasil evaluasi pada bagian awal README berasal dari
+eksperimen Machine Learning sebelumnya dan tidak otomatis
+merepresentasikan akurasi kedua model ONNX yang digunakan aplikasi.
+
+Prediksi model adalah klasifikasi berdasarkan pola teks,
+bukan verifikasi fakta secara real-time.
