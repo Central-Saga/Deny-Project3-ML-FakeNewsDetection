@@ -300,3 +300,66 @@ merepresentasikan akurasi kedua model ONNX yang digunakan aplikasi.
 
 Prediksi model adalah klasifikasi berdasarkan pola teks,
 bukan verifikasi fakta secara real-time.
+---
+
+## Fitur Aplikasi Android
+
+FakeNews AI adalah aplikasi Android berbasis Kotlin untuk
+klasifikasi teks berita menggunakan Machine Learning offline.
+
+Fitur utama:
+
+- Deteksi otomatis bahasa Indonesia dan Inggris.
+- Prediksi menggunakan TF-IDF, Linear SVM, dan ONNX Runtime.
+- Menampilkan hasil FAKE NEWS, REAL NEWS, atau UNCERTAIN.
+- Menyimpan hasil analisis dalam riwayat lokal.
+- Menampilkan kembali riwayat tanpa koneksi internet.
+- Validasi input dan penanganan kesalahan.
+
+## Screenshot Aplikasi
+
+### Beranda
+![Beranda FakeNews AI](docs/screenshots/01-home.png)
+
+### Form Deteksi
+![Form Deteksi Berita](docs/screenshots/02-detection.png)
+
+### Hasil Analisis
+![Hasil Analisis Berita](docs/screenshots/03-result.png)
+
+### Riwayat
+![Riwayat Hasil Analisis](docs/screenshots/04-history.png)
+
+## Cara Menjalankan Aplikasi
+
+1. Clone repository dari GitHub.
+2. Buka folder android-app menggunakan Android Studio.
+3. Pastikan Android SDK dan JDK sudah terkonfigurasi.
+4. Lakukan Gradle Sync.
+5. Jalankan aplikasi menggunakan emulator atau perangkat Android.
+6. Masukkan judul dan isi berita pada halaman Deteksi.
+7. Tekan Analisis Berita untuk menjalankan model ONNX.
+8. Buka halaman Riwayat untuk melihat hasil yang tersimpan.
+
+Perintah build dari folder android-app:
+
+    .\gradlew.bat --no-daemon clean assembleDebug
+
+Lokasi APK:
+
+    android-app/app/build/outputs/apk/debug/app-debug.apk
+
+## Skenario Demonstrasi
+
+Panduan demonstrasi tersedia di:
+
+[Demo Scenario](docs/demo-scenario.md)
+
+## Catatan Evaluasi Machine Learning
+
+Metrik dataset ISOT pada bagian awal README merupakan hasil
+eksperimen awal. Angka tersebut tidak otomatis menjadi hasil
+evaluasi model English v1.3 dan Indonesian Political v3.
+
+Aplikasi melakukan klasifikasi berdasarkan pola teks,
+bukan verifikasi kebenaran berita secara real-time.
