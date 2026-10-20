@@ -42,6 +42,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
+    // ONNX Runtime untuk inferensi model ML di Android
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.31.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

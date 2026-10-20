@@ -2,6 +2,7 @@ package com.example.fakenewsdetection
 
 import android.content.Intent
 import android.graphics.Color
+import android.util.Log
 import android.os.Bundle
 import android.os.Process
 import android.view.View
@@ -12,6 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
@@ -55,10 +57,17 @@ class MainActivity : AppCompatActivity() {
     // MACHINE LEARNING
     // =========================================================
 
-    private lateinit var classifier: FakeNewsClassifier
+    // Hanya diakses dari mlExecutor agar inferensi tidak bersamaan
+    // dengan penutupan sesi ONNX.
+    private var classifier: FakeNewsClassifier? = null
 
-    private var modelReady =
-        false
+    // Satu worker untuk load, predict, lalu close secara berurutan.
+    private val mlExecutor = Executors.newSingleThreadExecutor { task ->
+        Thread(task, "ML-Worker")
+    }
+
+    // Hanya diakses dari main/UI thread.
+    private var modelReady = false
 
     // =========================================================
     // LOCAL HISTORY
@@ -358,66 +367,38 @@ class MainActivity : AppCompatActivity() {
     // =========================================================
 
     private fun loadMachineLearningModel() {
+        modelReady = false
+        btnDetect.isEnabled = false
+        btnDetect.text = "Memuat model..."
+        txtModelStatus.text = "Menyiapkan model offline..."
 
-        modelReady =
-            false
-
-        btnDetect.isEnabled =
-            false
-
-        btnDetect.text =
-            "Memuat model..."
-
-        txtModelStatus.text =
-            "Menyiapkan model offline..."
-
-        Thread {
-
-            Process.setThreadPriority(
-                Process.THREAD_PRIORITY_BACKGROUND
-            )
+        mlExecutor.execute {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
 
             try {
-
-                val loadedClassifier =
-                    FakeNewsClassifier(
-                        applicationContext
-                    )
+                // Inisialisasi JSON dilakukan di background worker.
+                // ONNX Runtime akan dimuat saat pertama kali predict.
+                val loadedClassifier = FakeNewsClassifier(applicationContext)
+                classifier = loadedClassifier
 
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
 
-                    classifier =
-                        loadedClassifier
-
-                    modelReady =
-                        true
-
-                    btnDetect.isEnabled =
-                        true
-
-                    btnDetect.text =
-                        "Analisis Berita"
-
-                    txtModelStatus.text =
-                        "2 model aktif • Bahasa dipilih otomatis"
+                    modelReady = true
+                    btnDetect.isEnabled = true
+                    btnDetect.text = "Analisis Berita"
+                    txtModelStatus.text = "2 model aktif • Bahasa dipilih otomatis"
                 }
-
             } catch (e: Exception) {
+                Log.e("FakeNewsDetection", "Gagal memuat model", e)
 
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
 
-                    modelReady =
-                        false
-
-                    btnDetect.isEnabled =
-                        false
-
-                    btnDetect.text =
-                        "Model tidak tersedia"
-
-                    txtModelStatus.text =
-                        "Model gagal dimuat"
-
+                    modelReady = false
+                    btnDetect.isEnabled = false
+                    btnDetect.text = "Model tidak tersedia"
+                    txtModelStatus.text = "Model gagal dimuat"
                     Toast.makeText(
                         this,
                         "Gagal memuat model: ${e.message}",
@@ -425,13 +406,6 @@ class MainActivity : AppCompatActivity() {
                     ).show()
                 }
             }
-
-        }.apply {
-
-            name =
-                "ML-Model-Loader"
-
-            start()
         }
     }
 
@@ -439,57 +413,30 @@ class MainActivity : AppCompatActivity() {
     // DETECT NEWS
     // =========================================================
 
-    private fun detectNews(
-        title: String,
-        content: String
-    ) {
+    private fun detectNews(title: String, content: String) {
+        btnDetect.isEnabled = false
+        btnDetect.text = "Menganalisis..."
 
-        btnDetect.isEnabled =
-            false
-
-        btnDetect.text =
-            "Menganalisis..."
-
-        Thread {
-
-            Process.setThreadPriority(
-                Process.THREAD_PRIORITY_BACKGROUND
-            )
+        // Antrean tunggal memastikan close() tidak berjalan saat prediksi.
+        mlExecutor.execute {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
 
             try {
-
-                // =============================================
-                // AUTO LANGUAGE + AUTO MODEL
-                // =============================================
-
-                val result =
-                    classifier.predictAuto(
-                        title,
-                        content
-                    )
+                val activeClassifier = classifier
+                    ?: error("Model belum selesai dimuat")
+                val result = activeClassifier.predictAuto(title, content)
 
                 runOnUiThread {
+                    // Jangan menyentuh UI dari Activity yang sudah ditutup.
+                    if (isFinishing || isDestroyed) return@runOnUiThread
 
-                    showPrediction(
-                        result
-                    )
+                    showPrediction(result)
 
-                    val predictionText =
-                        when (result.label) {
-
-                            FakeNewsClassifier.LABEL_FAKE ->
-                                "FAKE NEWS"
-
-                            FakeNewsClassifier.LABEL_REAL ->
-                                "REAL NEWS"
-
-                            else ->
-                                "UNCERTAIN"
-                        }
-
-                    // =========================================
-                    // SAVE LOCAL HISTORY
-                    // =========================================
+                    val predictionText = when (result.label) {
+                        FakeNewsClassifier.LABEL_FAKE -> "FAKE NEWS"
+                        FakeNewsClassifier.LABEL_REAL -> "REAL NEWS"
+                        else -> "UNCERTAIN"
+                    }
 
                     saveDetectionHistory(
                         title = title,
@@ -498,23 +445,17 @@ class MainActivity : AppCompatActivity() {
                         score = result.score
                     )
 
-                    btnDetect.isEnabled =
-                        true
-
-                    btnDetect.text =
-                        "Analisis Berita"
+                    btnDetect.isEnabled = true
+                    btnDetect.text = "Analisis Berita"
                 }
-
             } catch (e: Exception) {
+                Log.e("FakeNewsDetection", "Gagal memprediksi berita", e)
 
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
 
-                    btnDetect.isEnabled =
-                        true
-
-                    btnDetect.text =
-                        "Analisis Berita"
-
+                    btnDetect.isEnabled = true
+                    btnDetect.text = "Analisis Berita"
                     Toast.makeText(
                         this,
                         "Prediksi gagal: ${e.message}",
@@ -522,14 +463,30 @@ class MainActivity : AppCompatActivity() {
                     ).show()
                 }
             }
-
-        }.apply {
-
-            name =
-                "ML-Prediction"
-
-            start()
         }
+    }
+
+    // =========================================================
+    // ACTIVITY LIFECYCLE
+    // =========================================================
+
+    override fun onDestroy() {
+        modelReady = false
+
+        // Ditambahkan ke antrean yang sama: jika prediksi masih berjalan,
+        // sesi ONNX baru ditutup setelah prediksi tersebut selesai.
+        mlExecutor.execute {
+            try {
+                classifier?.close()
+            } catch (e: Exception) {
+                Log.w("FakeNewsDetection", "Gagal menutup sesi ONNX", e)
+            } finally {
+                classifier = null
+            }
+        }
+        // Tidak menunggu di UI thread; tugas yang sudah diantrekan tetap jalan.
+        mlExecutor.shutdown()
+        super.onDestroy()
     }
 
     // =========================================================

@@ -9,7 +9,7 @@ import kotlin.math.sqrt
 
 class FakeNewsClassifier(
     private val context: Context
-) {
+) : AutoCloseable {
 
     enum class ModelLanguage {
         ENGLISH,
@@ -47,17 +47,14 @@ class FakeNewsClassifier(
         HashSet<String>()
 
     private lateinit var enWordIdf: DoubleArray
-    private lateinit var enWordCoef: DoubleArray
 
     private val enCharVocabulary =
         HashMap<String, Int>()
 
     private lateinit var enCharIdf: DoubleArray
-    private lateinit var enCharCoef: DoubleArray
 
     private lateinit var enClasses: IntArray
 
-    private var enIntercept = 0.0
     private var enUncertainThreshold = 0.20
 
     // =========================================================
@@ -68,10 +65,8 @@ class FakeNewsClassifier(
         HashMap<String, Int>()
 
     private lateinit var idIdf: DoubleArray
-    private lateinit var idCoef: DoubleArray
     private lateinit var idClasses: IntArray
 
-    private var idIntercept = 0.0
     private var idThreshold = 0.10
 
     // =========================================================
@@ -246,9 +241,23 @@ class FakeNewsClassifier(
     // INIT
     // =========================================================
 
+    // Dibuka hanya pada prediksi pertama agar startup tidak semakin berat.
+    // close() perlu dipanggil saat classifier sudah tidak digunakan.
+    private val onnxScorerDelegate = lazy {
+        OnnxSvmScorer(context.applicationContext)
+    }
+
+    private val onnxScorer by onnxScorerDelegate
+
     init {
         loadEnglishModel()
         loadIndonesianModel()
+    }
+
+    override fun close() {
+        if (onnxScorerDelegate.isInitialized()) {
+            onnxScorer.close()
+        }
     }
 
     // =========================================================
@@ -289,13 +298,6 @@ class FakeNewsClassifier(
                 )
             )
 
-        enWordCoef =
-            jsonToDoubleArray(
-                wordObject.getJSONArray(
-                    "coef"
-                )
-            )
-
         val stopWordsJson =
             wordObject.getJSONArray(
                 "stop_words"
@@ -327,21 +329,9 @@ class FakeNewsClassifier(
                 )
             )
 
-        enCharCoef =
-            jsonToDoubleArray(
-                charObject.getJSONArray(
-                    "coef"
-                )
-            )
-
         // SVM
         val svmObject =
             root.getJSONObject("svm")
-
-        enIntercept =
-            svmObject.getDouble(
-                "intercept"
-            )
 
         val classesJson =
             svmObject.getJSONArray(
@@ -361,18 +351,8 @@ class FakeNewsClassifier(
         )
 
         require(
-            enWordIdf.size ==
-                    enWordCoef.size
-        )
-
-        require(
             enCharVocabulary.size ==
                     enCharIdf.size
-        )
-
-        require(
-            enCharIdf.size ==
-                    enCharCoef.size
         )
 
         require(
@@ -409,18 +389,6 @@ class FakeNewsClassifier(
                 )
             )
 
-        idCoef =
-            jsonToDoubleArray(
-                root.getJSONArray(
-                    "coef"
-                )
-            )
-
-        idIntercept =
-            root.getDouble(
-                "intercept"
-            )
-
         idThreshold =
             root.getDouble(
                 "threshold"
@@ -441,11 +409,6 @@ class FakeNewsClassifier(
         require(
             idVocabulary.size ==
                     idIdf.size
-        )
-
-        require(
-            idIdf.size ==
-                    idCoef.size
         )
 
         require(
@@ -875,54 +838,37 @@ class FakeNewsClassifier(
     }
 
     // =========================================================
-    // TF-IDF + LINEAR SVM
+    // TF-IDF (ONNX LINEAR SVM SCORING)
     // =========================================================
 
-    private fun calculateBranchScore(
+    // Preprocessing lama tetap dipakai; hanya skor Linear SVM yang
+    // dipindahkan ke ONNX Runtime. Setiap indeks harus sesuai vocabulary.
+    private fun createTfidfVector(
         counts: HashMap<String, Int>,
         vocabulary: HashMap<String, Int>,
-        idf: DoubleArray,
-        coefficients: DoubleArray
-    ): Double {
+        idf: DoubleArray
+    ): FloatArray {
 
+        val raw = DoubleArray(idf.size)
         var normSquared = 0.0
-        var weightedSum = 0.0
 
-        for (
-        (feature, count) in counts
-        ) {
+        for ((feature, count) in counts) {
+            val index = vocabulary[feature] ?: continue
 
-            val index =
-                vocabulary[feature]
-                    ?: continue
-
-            val tf =
-                1.0 +
-                        ln(
-                            count.toDouble()
-                        )
-
-            val tfidf =
-                tf *
-                        idf[index]
-
-            normSquared +=
-                tfidf *
-                        tfidf
-
-            weightedSum +=
-                tfidf *
-                        coefficients[index]
+            val tf = 1.0 + ln(count.toDouble())
+            val tfidf = tf * idf[index]
+            raw[index] = tfidf
+            normSquared += tfidf * tfidf
         }
 
-        if (
-            normSquared <= 0.0
-        ) {
-            return 0.0
+        if (normSquared <= 0.0) {
+            return FloatArray(idf.size)
         }
 
-        return weightedSum /
-                sqrt(normSquared)
+        val norm = sqrt(normSquared)
+        return FloatArray(idf.size) { index ->
+            (raw[index] / norm).toFloat()
+        }
     }
 
     // =========================================================
@@ -986,30 +932,20 @@ class FakeNewsClassifier(
                 combinedText
             )
 
-        val wordScore =
-            calculateBranchScore(
-                createEnglishWordCounts(
-                    cleaned
-                ),
-                enWordVocabulary,
-                enWordIdf,
-                enWordCoef
-            )
+        val wordTfidf = createTfidfVector(
+            createEnglishWordCounts(cleaned),
+            enWordVocabulary,
+            enWordIdf
+        )
 
-        val charScore =
-            calculateBranchScore(
-                createEnglishCharCounts(
-                    cleaned
-                ),
-                enCharVocabulary,
-                enCharIdf,
-                enCharCoef
-            )
+        val charTfidf = createTfidfVector(
+            createEnglishCharCounts(cleaned),
+            enCharVocabulary,
+            enCharIdf
+        )
 
-        val score =
-            wordScore +
-                    charScore +
-                    enIntercept
+        // ONNX sudah menyimpan bobot dan intercept English v1.3.
+        val score = onnxScorer.scoreEnglish(wordTfidf, charTfidf)
 
         val prediction =
             when {
@@ -1069,19 +1005,14 @@ class FakeNewsClassifier(
                 combinedText
             )
 
-        val featureScore =
-            calculateBranchScore(
-                createIndonesianWordCounts(
-                    cleaned
-                ),
-                idVocabulary,
-                idIdf,
-                idCoef
-            )
+        val tfidf = createTfidfVector(
+            createIndonesianWordCounts(cleaned),
+            idVocabulary,
+            idIdf
+        )
 
-        val score =
-            featureScore +
-                    idIntercept
+        // ONNX sudah menyimpan bobot dan intercept Political v3.
+        val score = onnxScorer.scoreIndonesian(tfidf)
 
         val rawClass =
             if (
