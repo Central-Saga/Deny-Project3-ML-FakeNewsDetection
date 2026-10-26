@@ -42,3 +42,10 @@ venv/
 # Operating system
 .DS_Store
 Thumbs.db
+
+# Backend (folder dihapus dari repo, sisa lokal diabaikan)
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/*.pyc
+backend/*.db
