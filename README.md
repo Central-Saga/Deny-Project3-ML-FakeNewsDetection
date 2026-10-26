@@ -193,23 +193,70 @@ Notebook utama:
 ## Android Debug Build
 
 ### Requirements
+
 - JDK 21 atau JDK yang kompatibel dengan konfigurasi Gradle
 - Android SDK (termasuk platform SDK 36.1)
 - Gradle Wrapper 9.3.1 (sudah tersedia dalam repository)
 
-### Build Instructions
+### Struktur Modul
 
-1. Clone repository.
-2. Masuk ke folder `android-app`.
-3. Konfigurasi Android SDK melalui `ANDROID_HOME` atau
-   `local.properties` (file ini tidak disimpan di Git).
-4. Jalankan:
+```
+Deny-Project3-Final/          ← root repo
+├── android-app/              ← modul Android
+│   ├── gradlew               ← Unix wrapper (mode 100755, eol=lf)
+│   ├── gradlew.bat           ← Windows wrapper
+│   ├── gradle/wrapper/
+│   │   └── gradle-wrapper.jar
+│   ├── app/                  ← application module
+│   └── build.gradle.kts
+├── backend/
+├── docs/
+├── .gitattributes            ← menjaga mode & eol gradlew
+└── README.md
+```
 
-   Windows:
-   `.\gradlew.bat --no-daemon clean assembleDebug`
+### Build dari Root Repository (Cara yang Direkomendasikan)
 
-5. APK debug tersedia di:
-   `android-app/app/build/outputs/apk/debug/app-debug.apk`
+**Windows (PowerShell / CMD):**
+
+```powershell
+git clone https://github.com/Central-Saga/Deny-Project3-ML-FakeNewsDetection.git
+cd Deny-Project3-ML-FakeNewsDetection\android-app
+.\gradlew.bat --no-daemon clean assembleDebug
+```
+
+**Linux / macOS:**
+
+```bash
+git clone https://github.com/Central-Saga/Deny-Project3-ML-FakeNewsDetection.git
+cd Deny-Project3-ML-FakeNewsDetection/android-app
+# gradlew sudah executable (mode 100755) — tidak perlu chmod manual
+./gradlew --no-daemon clean assembleDebug
+```
+
+> **Catatan:** File `android-app/gradlew` disimpan dengan mode `100755` di Git
+> dan dijaga oleh `.gitattributes` (`eol=lf`). Setelah fresh clone di
+> Linux/macOS, file langsung bisa dieksekusi tanpa `chmod +x`.
+
+### Konfigurasi Android SDK
+
+Buat file `android-app/local.properties` (tidak di-commit ke Git):
+
+```properties
+sdk.dir=/path/to/android/sdk
+```
+
+Atau ekspor environment variable:
+
+```bash
+export ANDROID_HOME=/path/to/android/sdk
+```
+
+### Lokasi APK
+
+```
+android-app/app/build/outputs/apk/debug/app-debug.apk
+```
 
 ### Verification
 
