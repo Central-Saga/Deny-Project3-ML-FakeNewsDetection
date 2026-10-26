@@ -1,0 +1,24 @@
+﻿# requirements-src.txt — dependensi untuk src/train.py, src/export_android.py, src/evaluate.py
+# Install: pip install -r requirements-src.txt
+# Versi dipin untuk reproducibility (Python 3.10+)
+
+# Data & ML
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.1
+scipy==1.13.1
+joblib==1.4.2
+
+# ONNX export
+onnx==1.16.2
+skl2onnx==0.17.2
+
+# ONNX inference (evaluasi)
+onnxruntime==1.18.1
+
+# Notebook
+ipykernel==6.29.5
+ipython==8.26.0
+
+# Environment
+python-dotenv==1.0.1

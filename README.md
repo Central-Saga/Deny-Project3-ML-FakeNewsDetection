@@ -426,11 +426,70 @@ Input Pengguna → ONNX Inference (offline) → LocalHistoryManager (SQLite loka
 
 Tidak ada backend eksternal yang digunakan oleh aplikasi.
 
-## Catatan Evaluasi Machine Learning
+## Reproduksi Artefak Model (Issue #13)
 
-Metrik dataset ISOT pada bagian awal README merupakan hasil
-eksperimen awal. Angka tersebut tidak otomatis menjadi hasil
-evaluasi model English v1.3 dan Indonesian Political v3.
+Aplikasi Android menggunakan dua pasang artefak ONNX + JSON:
+
+| Artefak | Ukuran | Keterangan |
+|---|---|---|
+| `fake_news_model_en_v13.onnx` | ~587 KB | LinearSVC EN, dual TF-IDF |
+| `fake_news_model_en_v13.json` | ~8,2 MB | vocab + idf + coef + metrics |
+| `fake_news_model_id_political_v3.onnx` | ~391 KB | LinearSVC ID, single TF-IDF |
+| `fake_news_model_id_political_v3.json` | ~4,4 MB | vocab + idf + coef |
+
+### Prasyarat
+
+```bash
+pip install -r requirements-src.txt   # Python 3.10+, semua versi dipin
+```
+
+### Langkah Regenerasi (dari clone bersih)
+
+```bash
+# 1. Siapkan dataset
+#    EN  : Fake.csv + True.csv dari ISOT → taruh di data/
+#    ID  : id_political.csv              → taruh di data/
+#    Lihat data/README.md untuk sumber dataset.
+
+# 2. Latih model (.pkl)
+python src/train.py --data-dir data/ --out-dir models/
+
+# 3. Ekspor ke ONNX + JSON
+python src/export_android.py --model-dir models/ \
+    --out-dir android-app/app/src/main/assets/
+
+# 4. Evaluasi artefak ONNX + uji paritas
+python src/evaluate.py --data-dir data/ \
+    --assets-dir android-app/app/src/main/assets/
+# Output: android-app/app/src/main/assets/metrics.json
+```
+
+### Struktur src/
+
+```
+src/
+├── train.py           # Latih LinearSVC EN + ID dari dataset mentah → .pkl
+├── export_android.py  # Konversi .pkl → ONNX + JSON (format aplikasi Android)
+└── evaluate.py        # Evaluasi ONNX, confusion matrix, uji paritas 20 sampel
+data/
+├── .gitkeep
+├── README.md          # Petunjuk download dataset
+├── Fake.csv           # (tidak di-commit — terlalu besar)
+├── True.csv           # (tidak di-commit)
+└── id_political.csv   # (tidak di-commit)
+models/                # Output train.py — tidak di-commit
+requirements-src.txt   # Dependensi terpin untuk src/
+```
+
+### Catatan Evaluasi Machine Learning
+
+Metrik di bagian awal README (93,49% / 97,94% / 98,95%) adalah hasil
+eksperimen awal pada notebook dengan TF-IDF 50k fitur dan model `.pkl`.
+
+Artefak yang sebenarnya dipakai aplikasi (EN v1.3 dan ID Political v3)
+menggunakan konfigurasi berbeda (100k word + 50k char untuk EN).
+Metrik resmi artefak ONNX tersimpan di `metrics.json` yang dihasilkan
+`src/evaluate.py` setelah regenerasi.
 
 Aplikasi melakukan klasifikasi berdasarkan pola teks,
 bukan verifikasi kebenaran berita secara real-time.

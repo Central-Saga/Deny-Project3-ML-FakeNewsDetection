@@ -43,9 +43,12 @@ venv/
 .DS_Store
 Thumbs.db
 
+# ML training output folder (train.py → models/)
+models/
+
 # Backend (folder dihapus dari repo, sisa lokal diabaikan)
 backend/venv/
 backend/.env
 backend/__pycache__/
 backend/*.pyc
-backend/*.db
+backend/*.db
