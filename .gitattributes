@@ -1,0 +1,26 @@
+﻿# Normalize line endings
+* text=auto
+
+# Gradle wrapper scripts must be executable on Unix/Linux/macOS
+android-app/gradlew text eol=lf
+android-app/gradlew linguist-language=Shell
+
+# Windows batch scripts use CRLF
+android-app/gradlew.bat text eol=crlf
+
+# Binary assets — never mangle line endings
+*.onnx binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.apk  binary
+*.aab  binary
+*.aar  binary
+*.jar  binary
+*.keystore binary
+*.jks  binary
+*.zip  binary
+*.pkl  binary
+*.joblib binary
