@@ -46,9 +46,9 @@ Thumbs.db
 # ML training output folder (train.py → models/)
 models/
 
-# Backend sisa lokal (folder dihapus dari repo, Issue #11)
+# Backend (folder dihapus dari repo, sisa lokal diabaikan)
 backend/venv/
 backend/.env
 backend/__pycache__/
 backend/*.pyc
-backend/*.db
+backend/*.db

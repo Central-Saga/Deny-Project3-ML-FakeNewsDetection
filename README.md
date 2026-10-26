@@ -193,23 +193,70 @@ Notebook utama:
 ## Android Debug Build
 
 ### Requirements
+
 - JDK 21 atau JDK yang kompatibel dengan konfigurasi Gradle
 - Android SDK (termasuk platform SDK 36.1)
 - Gradle Wrapper 9.3.1 (sudah tersedia dalam repository)
 
-### Build Instructions
+### Struktur Modul
 
-1. Clone repository.
-2. Masuk ke folder `android-app`.
-3. Konfigurasi Android SDK melalui `ANDROID_HOME` atau
-   `local.properties` (file ini tidak disimpan di Git).
-4. Jalankan:
+```
+Deny-Project3-Final/          ← root repo
+├── android-app/              ← modul Android
+│   ├── gradlew               ← Unix wrapper (mode 100755, eol=lf)
+│   ├── gradlew.bat           ← Windows wrapper
+│   ├── gradle/wrapper/
+│   │   └── gradle-wrapper.jar
+│   ├── app/                  ← application module
+│   └── build.gradle.kts
+├── backend/
+├── docs/
+├── .gitattributes            ← menjaga mode & eol gradlew
+└── README.md
+```
 
-   Windows:
-   `.\gradlew.bat --no-daemon clean assembleDebug`
+### Build dari Root Repository (Cara yang Direkomendasikan)
 
-5. APK debug tersedia di:
-   `android-app/app/build/outputs/apk/debug/app-debug.apk`
+**Windows (PowerShell / CMD):**
+
+```powershell
+git clone https://github.com/Central-Saga/Deny-Project3-ML-FakeNewsDetection.git
+cd Deny-Project3-ML-FakeNewsDetection\android-app
+.\gradlew.bat --no-daemon clean assembleDebug
+```
+
+**Linux / macOS:**
+
+```bash
+git clone https://github.com/Central-Saga/Deny-Project3-ML-FakeNewsDetection.git
+cd Deny-Project3-ML-FakeNewsDetection/android-app
+# gradlew sudah executable (mode 100755) — tidak perlu chmod manual
+./gradlew --no-daemon clean assembleDebug
+```
+
+> **Catatan:** File `android-app/gradlew` disimpan dengan mode `100755` di Git
+> dan dijaga oleh `.gitattributes` (`eol=lf`). Setelah fresh clone di
+> Linux/macOS, file langsung bisa dieksekusi tanpa `chmod +x`.
+
+### Konfigurasi Android SDK
+
+Buat file `android-app/local.properties` (tidak di-commit ke Git):
+
+```properties
+sdk.dir=/path/to/android/sdk
+```
+
+Atau ekspor environment variable:
+
+```bash
+export ANDROID_HOME=/path/to/android/sdk
+```
+
+### Lokasi APK
+
+```
+android-app/app/build/outputs/apk/debug/app-debug.apk
+```
 
 ### Verification
 
@@ -355,6 +402,30 @@ Panduan demonstrasi tersedia di:
 
 [Demo Scenario](docs/demo-scenario.md)
 
+## Status Backend
+
+Direktori `backend/` (FastAPI + PostgreSQL) telah **dihapus dari repository**
+pada ronde audit produksi (Issue #11, Oktober 2026).
+
+**Alasan penghapusan:**
+
+- Aplikasi Android menyimpan riwayat deteksi secara **lokal** menggunakan
+  `LocalHistoryManager.kt` — tidak ada klien HTTP (Retrofit/OkHttp) dan
+  tidak ada izin `INTERNET` di `AndroidManifest.xml`.
+- README sendiri menyatakan aplikasi berjalan
+  _"tanpa memerlukan koneksi internet atau API eksternal"_.
+- Backend tidak pernah dipanggil oleh komponen mana pun → **dead code**.
+- Seluruh endpoint tidak memiliki autentikasi, sehingga menimbulkan risiko
+  keamanan (IDOR, data dump tanpa batas) bila tidak sengaja di-deploy.
+
+**Arsitektur riwayat saat ini:**
+
+```
+Input Pengguna → ONNX Inference (offline) → LocalHistoryManager (SQLite lokal)
+```
+
+Tidak ada backend eksternal yang digunakan oleh aplikasi.
+
 ## Reproduksi Artefak Model (Issue #13)
 
 Aplikasi Android menggunakan dua pasang artefak ONNX + JSON:
@@ -422,3 +493,4 @@ Metrik resmi artefak ONNX tersimpan di `metrics.json` yang dihasilkan
 
 Aplikasi melakukan klasifikasi berdasarkan pola teks,
 bukan verifikasi kebenaran berita secara real-time.
+
