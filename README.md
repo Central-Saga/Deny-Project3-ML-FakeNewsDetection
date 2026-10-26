@@ -402,6 +402,30 @@ Panduan demonstrasi tersedia di:
 
 [Demo Scenario](docs/demo-scenario.md)
 
+## Status Backend
+
+Direktori `backend/` (FastAPI + PostgreSQL) telah **dihapus dari repository**
+pada ronde audit produksi (Issue #11, Oktober 2026).
+
+**Alasan penghapusan:**
+
+- Aplikasi Android menyimpan riwayat deteksi secara **lokal** menggunakan
+  `LocalHistoryManager.kt` — tidak ada klien HTTP (Retrofit/OkHttp) dan
+  tidak ada izin `INTERNET` di `AndroidManifest.xml`.
+- README sendiri menyatakan aplikasi berjalan
+  _"tanpa memerlukan koneksi internet atau API eksternal"_.
+- Backend tidak pernah dipanggil oleh komponen mana pun → **dead code**.
+- Seluruh endpoint tidak memiliki autentikasi, sehingga menimbulkan risiko
+  keamanan (IDOR, data dump tanpa batas) bila tidak sengaja di-deploy.
+
+**Arsitektur riwayat saat ini:**
+
+```
+Input Pengguna → ONNX Inference (offline) → LocalHistoryManager (SQLite lokal)
+```
+
+Tidak ada backend eksternal yang digunakan oleh aplikasi.
+
 ## Catatan Evaluasi Machine Learning
 
 Metrik dataset ISOT pada bagian awal README merupakan hasil
@@ -410,3 +434,4 @@ evaluasi model English v1.3 dan Indonesian Political v3.
 
 Aplikasi melakukan klasifikasi berdasarkan pola teks,
 bukan verifikasi kebenaran berita secara real-time.
+
