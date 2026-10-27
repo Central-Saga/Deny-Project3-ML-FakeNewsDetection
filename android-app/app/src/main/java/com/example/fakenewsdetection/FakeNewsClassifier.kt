@@ -7,9 +7,20 @@ import java.util.Locale
 import kotlin.math.ln
 import kotlin.math.sqrt
 
-class FakeNewsClassifier(
-    private val context: Context
+class FakeNewsClassifier internal constructor(
+    private val assetReader: (String) -> String,
+    private val onnxScorerProvider: () -> OnnxSvmScorer
 ) : AutoCloseable {
+
+    constructor(context: Context) : this(
+        assetReader = { fileName ->
+            context.assets
+                .open(fileName)
+                .bufferedReader()
+                .use { it.readText() }
+        },
+        onnxScorerProvider = { OnnxSvmScorer(context.applicationContext) }
+    )
 
     enum class ModelLanguage {
         ENGLISH,
@@ -40,34 +51,34 @@ class FakeNewsClassifier(
     // ENGLISH MODEL
     // =========================================================
 
-    private val enWordVocabulary =
+    internal val enWordVocabulary =
         HashMap<String, Int>()
 
-    private val enWordStopWords =
+    internal val enWordStopWords =
         HashSet<String>()
 
-    private lateinit var enWordIdf: DoubleArray
+    internal lateinit var enWordIdf: DoubleArray
 
-    private val enCharVocabulary =
+    internal val enCharVocabulary =
         HashMap<String, Int>()
 
-    private lateinit var enCharIdf: DoubleArray
+    internal lateinit var enCharIdf: DoubleArray
 
-    private lateinit var enClasses: IntArray
+    internal lateinit var enClasses: IntArray
 
-    private var enUncertainThreshold = 0.20
+    internal var enUncertainThreshold = 0.20
 
     // =========================================================
     // INDONESIAN POLITICAL v3
     // =========================================================
 
-    private val idVocabulary =
+    internal val idVocabulary =
         HashMap<String, Int>()
 
-    private lateinit var idIdf: DoubleArray
-    private lateinit var idClasses: IntArray
+    internal lateinit var idIdf: DoubleArray
+    internal lateinit var idClasses: IntArray
 
-    private var idThreshold = 0.10
+    internal var idThreshold = 0.10
 
     // =========================================================
     // COMMON REGEX
@@ -244,7 +255,7 @@ class FakeNewsClassifier(
     // Dibuka hanya pada prediksi pertama agar startup tidak semakin berat.
     // close() perlu dipanggil saat classifier sudah tidak digunakan.
     private val onnxScorerDelegate = lazy {
-        OnnxSvmScorer(context.applicationContext)
+        onnxScorerProvider()
     }
 
     private val onnxScorer by onnxScorerDelegate
@@ -267,10 +278,7 @@ class FakeNewsClassifier(
     private fun loadEnglishModel() {
 
         val jsonString =
-            context.assets
-                .open(MODEL_FILE_EN)
-                .bufferedReader()
-                .use { it.readText() }
+            assetReader(MODEL_FILE_EN)
 
         val root =
             JSONObject(jsonString)
@@ -367,10 +375,7 @@ class FakeNewsClassifier(
     private fun loadIndonesianModel() {
 
         val jsonString =
-            context.assets
-                .open(MODEL_FILE_ID)
-                .bufferedReader()
-                .use { it.readText() }
+            assetReader(MODEL_FILE_ID)
 
         val root =
             JSONObject(jsonString)
@@ -461,7 +466,7 @@ class FakeNewsClassifier(
     // LANGUAGE DETECTION
     // =========================================================
 
-    private fun detectLanguage(
+    internal fun detectLanguage(
         title: String,
         content: String
     ): ModelLanguage {
@@ -518,7 +523,7 @@ class FakeNewsClassifier(
     // ENGLISH CLEANING
     // =========================================================
 
-    private fun cleanEnglishText(
+    internal fun cleanEnglishText(
         input: String
     ): String {
 
@@ -571,7 +576,7 @@ class FakeNewsClassifier(
     // Sama dengan sanitize_v3() Python
     // =========================================================
 
-    private fun cleanIndonesianText(
+    internal fun cleanIndonesianText(
         input: String
     ): String {
 
@@ -640,7 +645,7 @@ class FakeNewsClassifier(
     // ENGLISH WORD COUNTS
     // =========================================================
 
-    private fun createEnglishWordCounts(
+    internal fun createEnglishWordCounts(
         text: String
     ): HashMap<String, Int> {
 
@@ -664,7 +669,7 @@ class FakeNewsClassifier(
     // INDONESIAN WORD COUNTS
     // =========================================================
 
-    private fun createIndonesianWordCounts(
+    internal fun createIndonesianWordCounts(
         text: String
     ): HashMap<String, Int> {
 
@@ -685,7 +690,7 @@ class FakeNewsClassifier(
     // UNIGRAM + BIGRAM
     // =========================================================
 
-    private fun createUnigramBigramCounts(
+    internal fun createUnigramBigramCounts(
         tokens: List<String>
     ): HashMap<String, Int> {
 
@@ -728,7 +733,7 @@ class FakeNewsClassifier(
     // ENGLISH CHAR_WB 3-5
     // =========================================================
 
-    private fun createEnglishCharCounts(
+    internal fun createEnglishCharCounts(
         text: String
     ): HashMap<String, Int> {
 
@@ -843,7 +848,7 @@ class FakeNewsClassifier(
 
     // Preprocessing lama tetap dipakai; hanya skor Linear SVM yang
     // dipindahkan ke ONNX Runtime. Setiap indeks harus sesuai vocabulary.
-    private fun createTfidfVector(
+    internal fun createTfidfVector(
         counts: HashMap<String, Int>,
         vocabulary: HashMap<String, Int>,
         idf: DoubleArray

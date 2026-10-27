@@ -458,27 +458,35 @@ python src/train.py --data-dir data/ --out-dir models/
 python src/export_android.py --model-dir models/ \
     --out-dir android-app/app/src/main/assets/
 
-# 4. Evaluasi artefak ONNX + uji paritas
+# 4. Evaluasi artefak ONNX + uji paritas Python vs Kotlin
 python src/evaluate.py --data-dir data/ \
     --assets-dir android-app/app/src/main/assets/
 # Output: android-app/app/src/main/assets/metrics.json
+
+# 5. Uji paritas dan unit test Kotlin di Android
+cd android-app && ./gradlew test
 ```
 
-### Struktur src/
+### Struktur File ML & Uji Paritas
 
 ```
 src/
-├── train.py           # Latih LinearSVC EN + ID dari dataset mentah → .pkl
-├── export_android.py  # Konversi .pkl → ONNX + JSON (format aplikasi Android)
-└── evaluate.py        # Evaluasi ONNX, confusion matrix, uji paritas 20 sampel
+├── train.py              # Latih LinearSVC EN + ID dari dataset mentah -> .pkl
+├── export_android.py     # Konversi .pkl -> ONNX + JSON (format aplikasi Android)
+├── evaluate.py           # Evaluasi ONNX, confusion matrix, uji paritas Python vs Kotlin
+└── parity_fixtures.json  # Fixture skor Kotlin ter-commit untuk uji paritas (toleransi 1e-3)
 data/
 ├── .gitkeep
-├── README.md          # Petunjuk download dataset
-├── Fake.csv           # (tidak di-commit — terlalu besar)
-├── True.csv           # (tidak di-commit)
-└── id_political.csv   # (tidak di-commit)
-models/                # Output train.py — tidak di-commit
-requirements-src.txt   # Dependensi terpin untuk src/
+├── README.md             # Petunjuk download dataset
+├── Fake.csv              # (tidak di-commit — terlalu besar)
+├── True.csv              # (tidak di-commit)
+├── id_political.csv      # (tidak di-commit)
+└── parity_fixtures.json  # Salinan fixture ter-commit
+fake_news_detection.ipynb # Notebook naratif yang memanggil pipeline src/
+models/                   # Output train.py — tidak di-commit
+requirements-src.txt      # Dependensi terpin untuk src/
+android-app/app/src/test/java/com/example/fakenewsdetection/
+└── FakeNewsClassifierTest.kt # 17 Unit test Kotlin pengunci paritas preprocessing
 ```
 
 ### Catatan Evaluasi Machine Learning

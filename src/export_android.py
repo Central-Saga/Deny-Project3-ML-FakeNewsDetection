@@ -1,4 +1,4 @@
-﻿# export_android.py — ekspor model .pkl ke format ONNX + JSON yang dipakai aplikasi Android
+# export_android.py — ekspor model .pkl ke format ONNX + JSON yang dipakai aplikasi Android
 #
 # Penggunaan:
 #   python src/export_android.py --model-dir models/ --out-dir android-app/app/src/main/assets/
@@ -201,8 +201,8 @@ def export_english(model_dir: str, out_dir: str, uncertain_threshold: float):
             "remove_urls": True,
             "remove_html": True,
             "remove_reuters": True,
-            "remove_numbers": False,
-            "delete_punctuation": False,
+            "remove_numbers": True,
+            "delete_punctuation": True,
             "collapse_whitespace": True,
         },
         "word": {
@@ -218,8 +218,8 @@ def export_english(model_dir: str, out_dir: str, uncertain_threshold: float):
         },
         "char": {
             "analyzer": "char_wb",
-            "ngram_min": 2,
-            "ngram_max": 4,
+            "ngram_min": 3,
+            "ngram_max": 5,
             "sublinear_tf": True,
             "norm": "l2",
             "vocabulary": {token: int(idx) for token, idx in tfidf_char.vocabulary_.items()},

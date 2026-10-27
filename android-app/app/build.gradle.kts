@@ -46,6 +46,8 @@ dependencies {
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.31.0")
 
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20240303")
+    testImplementation("com.microsoft.onnxruntime:onnxruntime:1.31.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

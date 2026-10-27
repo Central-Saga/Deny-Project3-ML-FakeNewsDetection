@@ -6,19 +6,22 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import java.nio.FloatBuffer
 
-class OnnxSvmScorer(context: Context) : AutoCloseable {
+class OnnxSvmScorer internal constructor(
+    modelBytesEn: ByteArray,
+    modelBytesId: ByteArray
+) : AutoCloseable {
+
+    constructor(context: Context) : this(
+        modelBytesEn = context.assets.open("fake_news_model_en_v13.onnx")
+            .use { it.readBytes() },
+        modelBytesId = context.assets.open("fake_news_model_id_political_v3.onnx")
+            .use { it.readBytes() }
+    )
 
     private val environment = OrtEnvironment.getEnvironment()
 
-    private val englishSession = environment.createSession(
-        context.assets.open("fake_news_model_en_v13.onnx")
-            .use { it.readBytes() }
-    )
-
-    private val indonesianSession = environment.createSession(
-        context.assets.open("fake_news_model_id_political_v3.onnx")
-            .use { it.readBytes() }
-    )
+    private val englishSession = environment.createSession(modelBytesEn)
+    private val indonesianSession = environment.createSession(modelBytesId)
 
     fun scoreEnglish(
         wordTfidf: FloatArray,
