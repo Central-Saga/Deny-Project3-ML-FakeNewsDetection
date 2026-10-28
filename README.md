@@ -492,6 +492,7 @@ src/
 ├── train.py              # Latih LinearSVC EN + ID dari dataset mentah -> .pkl
 ├── export_android.py     # Konversi .pkl -> ONNX + JSON (format aplikasi Android)
 ├── evaluate.py           # Evaluasi ONNX, confusion matrix, uji paritas Python vs Kotlin
+├── generate_golden.py    # Generator golden fixture paritas preprocessing sklearn <-> Kotlin
 └── parity_fixtures.json  # Fixture skor Kotlin ter-commit untuk uji paritas (toleransi 1e-3)
 data/
 ├── .gitkeep
@@ -503,8 +504,19 @@ data/
 fake_news_detection.ipynb # Notebook naratif yang memanggil pipeline src/
 models/                   # Output train.py — tidak di-commit
 requirements-src.txt      # Dependensi terpin untuk src/
-android-app/app/src/test/java/com/example/fakenewsdetection/
-└── FakeNewsClassifierTest.kt # 17 Unit test Kotlin pengunci paritas preprocessing
+android-app/app/src/
+├── main/java/com/example/fakenewsdetection/
+│   ├── FakeNewsClassifier.kt  # Integrasi model & delegasi preprocessing
+│   └── TextPreprocessor.kt   # Preprocessing murni tanpa Context (JVM-testable)
+├── test/
+│   ├── java/com/example/fakenewsdetection/
+│   │   ├── FakeNewsClassifierTest.kt # 17 unit test preprocessing & scoring fixture
+│   │   ├── GoldenParityTest.kt       # 7 golden test (30 teks: clean text, n-gram, TF-IDF)
+│   │   └── TextPreprocessorTest.kt   # 13 unit test murni TF-IDF, empty input, threshold
+│   └── resources/
+│       └── golden_preprocessing.json # 30 sampel golden reference dari scikit-learn
+└── androidTest/java/com/example/fakenewsdetection/
+    └── FakeNewsClassifierInstrumentedTest.kt # Pengujian on-device dengan model ONNX asli
 ```
 
 ### Catatan Evaluasi Machine Learning

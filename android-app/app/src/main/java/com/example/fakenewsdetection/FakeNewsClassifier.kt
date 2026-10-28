@@ -4,8 +4,6 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
-import kotlin.math.ln
-import kotlin.math.sqrt
 
 class FakeNewsClassifier internal constructor(
     private val assetReader: (String) -> String,
@@ -51,16 +49,13 @@ class FakeNewsClassifier internal constructor(
     // ENGLISH MODEL
     // =========================================================
 
-    internal val enWordVocabulary =
-        HashMap<String, Int>()
+    internal val enWordVocabulary = HashMap<String, Int>()
 
-    internal val enWordStopWords =
-        HashSet<String>()
+    internal val enWordStopWords = HashSet<String>()
 
     internal lateinit var enWordIdf: DoubleArray
 
-    internal val enCharVocabulary =
-        HashMap<String, Int>()
+    internal val enCharVocabulary = HashMap<String, Int>()
 
     internal lateinit var enCharIdf: DoubleArray
 
@@ -72,8 +67,7 @@ class FakeNewsClassifier internal constructor(
     // INDONESIAN POLITICAL v3
     // =========================================================
 
-    internal val idVocabulary =
-        HashMap<String, Int>()
+    internal val idVocabulary = HashMap<String, Int>()
 
     internal lateinit var idIdf: DoubleArray
     internal lateinit var idClasses: IntArray
@@ -81,103 +75,17 @@ class FakeNewsClassifier internal constructor(
     internal var idThreshold = 0.10
 
     // =========================================================
-    // COMMON REGEX
+    // PREPROCESSING
+    // Seluruh regex, cleaning, tokenisasi, dan TF-IDF berada di
+    // TextPreprocessor (objek murni tanpa Context) agar bisa diuji
+    // di JVM dan dikunci paritasnya dengan pipeline Python.
     // =========================================================
-
-    private val whitespaceRegex =
-        Regex("""\s+""")
-
-    // =========================================================
-    // ENGLISH PREPROCESSING
-    // =========================================================
-
-    private val enUrlRegex =
-        Regex("""http\S+|www\S+""")
-
-    private val enHtmlRegex =
-        Regex("""<.*?>""")
-
-    private val enReutersRegex =
-        Regex("""\breuters\b""")
-
-    private val enNumberRegex =
-        Regex("""\p{Nd}+""")
-
-    private val enWordTokenRegex =
-        Regex("""[\p{L}\p{N}_]{2,}""")
-
-    private val punctuationChars =
-        "!\"#\$%&'()*+,-./:;<=>?@[\\]^_`{|}~".toSet()
-
-    // =========================================================
-    // INDONESIAN PREPROCESSING
-    // =========================================================
-
-    private val idUrlRegex =
-        Regex(
-            """https?://\S+|www\.\S+""",
-            RegexOption.IGNORE_CASE
-        )
-
-    private val idEmailRegex =
-        Regex(
-            """\b[\w\.-]+@[\w\.-]+\.\w+\b""",
-            RegexOption.IGNORE_CASE
-        )
-
-    private val idDomainRegex =
-        Regex(
-            """\b[\w\-]+\.(?:com|id|net|org|co\.id)\b""",
-            RegexOption.IGNORE_CASE
-        )
-
-    private val idTokenRegex =
-        Regex("""[a-z0-9]{2,}""")
-
-    private val idRemovePatterns =
-        listOf(
-            Regex("""\breferensi\b"""),
-            Regex("""\bpenjelasan\b"""),
-            Regex("""\bbaca juga\b"""),
-            Regex("""\bcek fakta\b"""),
-            Regex("""\btim cek fakta\b"""),
-            Regex("""\bhasil penelusuran\b"""),
-            Regex("""\bberdasarkan hasil penelusuran\b"""),
-            Regex("""\bsetelah ditelusuri\b"""),
-            Regex("""\bpenelusuran diketahui\b"""),
-            Regex("""\bdengan demikian\b"""),
-            Regex("""\bdemikian klaim\b"""),
-            Regex("""\bdalam kategori\b"""),
-            Regex("""\bmasuk ke dalam kategori\b"""),
-            Regex("""\bnarasi\b"""),
-            Regex("""\bklaim\b"""),
-            Regex("""\bhoax\b"""),
-            Regex("""\bhoaks\b"""),
-            Regex("""\bfoto hoaks\b"""),
-            Regex("""\bturnbackhoax\b"""),
-            Regex("""\boleh akun\b"""),
-            Regex("""\bakun facebook\b"""),
-            Regex("""\bakun twitter\b"""),
-            Regex("""\bakun instagram\b"""),
-            Regex("""\bdibagikan oleh\b"""),
-            Regex("""\beditor\b"""),
-            Regex("""\bpenulis\b"""),
-            Regex("""\breporter\b"""),
-            Regex("""\bsumber\b""")
-        )
-
-    private val idNamePatterns =
-        listOf(
-            Regex("""\bbentang febrylian\b"""),
-            Regex("""\bfebrylian\b"""),
-            Regex("""\bjulnis firmansyah\b"""),
-            Regex("""\bjulnis\b"""),
-            Regex("""\bfirmansyah\b""")
-        )
 
     // =========================================================
     // AUTO LANGUAGE DETECTION
     // =========================================================
+
+    private val languageTokenRegex = Regex("""[\p{L}]{2,}""")
 
     private val indonesianHints =
         setOf(
@@ -277,95 +185,42 @@ class FakeNewsClassifier internal constructor(
 
     private fun loadEnglishModel() {
 
-        val jsonString =
-            assetReader(MODEL_FILE_EN)
+        val root = JSONObject(assetReader(MODEL_FILE_EN))
 
-        val root =
-            JSONObject(jsonString)
-
-        enUncertainThreshold =
-            root.getDouble(
-                "uncertain_threshold"
-            )
+        enUncertainThreshold = root.getDouble("uncertain_threshold")
 
         // WORD
-        val wordObject =
-            root.getJSONObject("word")
+        val wordObject = root.getJSONObject("word")
 
-        loadVocabulary(
-            wordObject.getJSONObject(
-                "vocabulary"
-            ),
-            enWordVocabulary
-        )
+        loadVocabulary(wordObject.getJSONObject("vocabulary"), enWordVocabulary)
 
-        enWordIdf =
-            jsonToDoubleArray(
-                wordObject.getJSONArray(
-                    "idf"
-                )
-            )
+        enWordIdf = jsonToDoubleArray(wordObject.getJSONArray("idf"))
 
-        val stopWordsJson =
-            wordObject.getJSONArray(
-                "stop_words"
-            )
+        val stopWordsJson = wordObject.getJSONArray("stop_words")
 
-        for (
-        i in 0 until stopWordsJson.length()
-        ) {
-            enWordStopWords.add(
-                stopWordsJson.getString(i)
-            )
+        for (i in 0 until stopWordsJson.length()) {
+            enWordStopWords.add(stopWordsJson.getString(i))
         }
 
         // CHAR
-        val charObject =
-            root.getJSONObject("char")
+        val charObject = root.getJSONObject("char")
 
-        loadVocabulary(
-            charObject.getJSONObject(
-                "vocabulary"
-            ),
-            enCharVocabulary
-        )
+        loadVocabulary(charObject.getJSONObject("vocabulary"), enCharVocabulary)
 
-        enCharIdf =
-            jsonToDoubleArray(
-                charObject.getJSONArray(
-                    "idf"
-                )
-            )
+        enCharIdf = jsonToDoubleArray(charObject.getJSONArray("idf"))
 
         // SVM
-        val svmObject =
-            root.getJSONObject("svm")
+        val classesJson = root.getJSONObject("svm").getJSONArray("classes")
 
-        val classesJson =
-            svmObject.getJSONArray(
-                "classes"
-            )
+        enClasses = IntArray(classesJson.length()) { index ->
+            classesJson.getInt(index)
+        }
 
-        enClasses =
-            IntArray(
-                classesJson.length()
-            ) { index ->
-                classesJson.getInt(index)
-            }
+        require(enWordVocabulary.size == enWordIdf.size)
 
-        require(
-            enWordVocabulary.size ==
-                    enWordIdf.size
-        )
+        require(enCharVocabulary.size == enCharIdf.size)
 
-        require(
-            enCharVocabulary.size ==
-                    enCharIdf.size
-        )
-
-        require(
-            enClasses.size >= 2
-        )
+        require(enClasses.size >= 2)
     }
 
     // =========================================================
@@ -374,56 +229,25 @@ class FakeNewsClassifier internal constructor(
 
     private fun loadIndonesianModel() {
 
-        val jsonString =
-            assetReader(MODEL_FILE_ID)
+        val root = JSONObject(assetReader(MODEL_FILE_ID))
 
-        val root =
-            JSONObject(jsonString)
+        loadVocabulary(root.getJSONObject("vocabulary"), idVocabulary)
 
-        loadVocabulary(
-            root.getJSONObject(
-                "vocabulary"
-            ),
-            idVocabulary
-        )
+        idIdf = jsonToDoubleArray(root.getJSONArray("idf"))
 
-        idIdf =
-            jsonToDoubleArray(
-                root.getJSONArray(
-                    "idf"
-                )
-            )
+        idThreshold = root.getDouble("threshold")
 
-        idThreshold =
-            root.getDouble(
-                "threshold"
-            )
+        val classesJson = root.getJSONArray("classes")
 
-        val classesJson =
-            root.getJSONArray(
-                "classes"
-            )
+        idClasses = IntArray(classesJson.length()) { index ->
+            classesJson.getInt(index)
+        }
 
-        idClasses =
-            IntArray(
-                classesJson.length()
-            ) { index ->
-                classesJson.getInt(index)
-            }
+        require(idVocabulary.size == idIdf.size)
 
-        require(
-            idVocabulary.size ==
-                    idIdf.size
-        )
+        require(idClasses.size == 2)
 
-        require(
-            idClasses.size == 2
-        )
-
-        require(
-            idClasses[0] == 0 &&
-                    idClasses[1] == 1
-        )
+        require(idClasses[0] == 0 && idClasses[1] == 1)
     }
 
     // =========================================================
@@ -434,30 +258,16 @@ class FakeNewsClassifier internal constructor(
         json: JSONObject,
         destination: HashMap<String, Int>
     ) {
+        val keys = json.keys()
 
-        val keys =
-            json.keys()
-
-        while (
-            keys.hasNext()
-        ) {
-
-            val feature =
-                keys.next()
-
-            destination[feature] =
-                json.getInt(feature)
+        while (keys.hasNext()) {
+            val feature = keys.next()
+            destination[feature] = json.getInt(feature)
         }
     }
 
-    private fun jsonToDoubleArray(
-        json: JSONArray
-    ): DoubleArray {
-
-        return DoubleArray(
-            json.length()
-        ) { index ->
-
+    private fun jsonToDoubleArray(json: JSONArray): DoubleArray {
+        return DoubleArray(json.length()) { index ->
             json.getDouble(index)
         }
     }
@@ -471,376 +281,59 @@ class FakeNewsClassifier internal constructor(
         content: String
     ): ModelLanguage {
 
-        val rawText =
-            "$title $content"
-                .lowercase(
-                    Locale.ROOT
-                )
+        val rawText = "$title $content".lowercase(Locale.ROOT)
 
-        val tokens =
-            Regex("""[\p{L}]{2,}""")
-                .findAll(rawText)
-                .map {
-                    it.value
-                }
-                .toList()
+        val tokens = languageTokenRegex
+            .findAll(rawText)
+            .map { it.value }
+            .toList()
 
         var indonesiaScore = 0
         var englishScore = 0
 
-        for (
-        token in tokens
-        ) {
-
-            if (
-                token in indonesianHints
-            ) {
+        for (token in tokens) {
+            if (token in indonesianHints) {
                 indonesiaScore++
             }
-
-            if (
-                token in englishHints
-            ) {
+            if (token in englishHints) {
                 englishScore++
             }
         }
 
         // Jika seri, default ke Indonesia karena
         // aplikasi utamanya ditujukan untuk pengguna Indonesia.
-        return if (
-            englishScore > indonesiaScore
-        ) {
-
+        return if (englishScore > indonesiaScore) {
             ModelLanguage.ENGLISH
-
         } else {
-
             ModelLanguage.INDONESIAN
         }
     }
 
     // =========================================================
-    // ENGLISH CLEANING
+    // PREPROCESSING WRAPPERS (delegasi ke TextPreprocessor)
     // =========================================================
 
-    internal fun cleanEnglishText(
-        input: String
-    ): String {
+    // English v1.3:
+    // punctuation dihapus, bukan diganti spasi.
+    internal fun cleanEnglishText(input: String): String =
+        TextPreprocessor.cleanEnglishText(input)
 
-        var text =
-            input.lowercase(
-                Locale.ROOT
-            )
-
-        text =
-            text.replace(
-                enUrlRegex,
-                " "
-            )
-
-        text =
-            text.replace(
-                enHtmlRegex,
-                " "
-            )
-
-        text =
-            text.replace(
-                enReutersRegex,
-                " "
-            )
-
-        text =
-            text.replace(
-                enNumberRegex,
-                " "
-            )
-
-        // English v1.3:
-        // punctuation dihapus, bukan diganti spasi.
-        text =
-            text.filter { char ->
-                char !in punctuationChars
-            }
-
-        return text
-            .replace(
-                whitespaceRegex,
-                " "
-            )
-            .trim()
-    }
-
-    // =========================================================
     // INDONESIAN v3 CLEANING
     // Sama dengan sanitize_v3() Python
-    // =========================================================
+    internal fun cleanIndonesianText(input: String): String =
+        TextPreprocessor.cleanIndonesianText(input)
 
-    internal fun cleanIndonesianText(
-        input: String
-    ): String {
+    internal fun createEnglishWordCounts(text: String): HashMap<String, Int> =
+        TextPreprocessor.englishWordCounts(text, enWordStopWords)
 
-        var text =
-            input.lowercase(
-                Locale.ROOT
-            )
+    internal fun createIndonesianWordCounts(text: String): HashMap<String, Int> =
+        TextPreprocessor.indonesianWordCounts(text)
 
-        text =
-            text.replace(
-                idUrlRegex,
-                " "
-            )
+    internal fun createUnigramBigramCounts(tokens: List<String>): HashMap<String, Int> =
+        TextPreprocessor.unigramBigramCounts(tokens)
 
-        text =
-            text.replace(
-                idEmailRegex,
-                " "
-            )
-
-        text =
-            text.replace(
-                idDomainRegex,
-                " "
-            )
-
-        for (
-        pattern in idRemovePatterns
-        ) {
-
-            text =
-                text.replace(
-                    pattern,
-                    " "
-                )
-        }
-
-        for (
-        pattern in idNamePatterns
-        ) {
-
-            text =
-                text.replace(
-                    pattern,
-                    " "
-                )
-        }
-
-        text =
-            text.replace(
-                Regex(
-                    """[^a-z0-9\s]"""
-                ),
-                " "
-            )
-
-        return text
-            .replace(
-                whitespaceRegex,
-                " "
-            )
-            .trim()
-    }
-
-    // =========================================================
-    // ENGLISH WORD COUNTS
-    // =========================================================
-
-    internal fun createEnglishWordCounts(
-        text: String
-    ): HashMap<String, Int> {
-
-        val tokens =
-            enWordTokenRegex
-                .findAll(text)
-                .map {
-                    it.value
-                }
-                .filter {
-                    it !in enWordStopWords
-                }
-                .toList()
-
-        return createUnigramBigramCounts(
-            tokens
-        )
-    }
-
-    // =========================================================
-    // INDONESIAN WORD COUNTS
-    // =========================================================
-
-    internal fun createIndonesianWordCounts(
-        text: String
-    ): HashMap<String, Int> {
-
-        val tokens =
-            idTokenRegex
-                .findAll(text)
-                .map {
-                    it.value
-                }
-                .toList()
-
-        return createUnigramBigramCounts(
-            tokens
-        )
-    }
-
-    // =========================================================
-    // UNIGRAM + BIGRAM
-    // =========================================================
-
-    internal fun createUnigramBigramCounts(
-        tokens: List<String>
-    ): HashMap<String, Int> {
-
-        val counts =
-            HashMap<String, Int>()
-
-        for (
-        token in tokens
-        ) {
-
-            incrementCount(
-                counts,
-                token
-            )
-        }
-
-        if (
-            tokens.size >= 2
-        ) {
-
-            for (
-            i in 0 until
-                    tokens.size - 1
-            ) {
-
-                val bigram =
-                    "${tokens[i]} ${tokens[i + 1]}"
-
-                incrementCount(
-                    counts,
-                    bigram
-                )
-            }
-        }
-
-        return counts
-    }
-
-    // =========================================================
-    // ENGLISH CHAR_WB 3-5
-    // =========================================================
-
-    internal fun createEnglishCharCounts(
-        text: String
-    ): HashMap<String, Int> {
-
-        val counts =
-            HashMap<String, Int>()
-
-        if (
-            text.isBlank()
-        ) {
-            return counts
-        }
-
-        val normalizedText =
-            text.replace(
-                whitespaceRegex,
-                " "
-            )
-
-        val words =
-            normalizedText.split(" ")
-
-        for (
-        word in words
-        ) {
-
-            if (
-                word.isEmpty()
-            ) {
-                continue
-            }
-
-            val padded =
-                " $word "
-
-            val wordLength =
-                padded.length
-
-            for (
-            n in 3..5
-            ) {
-
-                var offset = 0
-
-                val firstEnd =
-                    minOf(
-                        offset + n,
-                        wordLength
-                    )
-
-                val firstGram =
-                    padded.substring(
-                        offset,
-                        firstEnd
-                    )
-
-                incrementCount(
-                    counts,
-                    firstGram
-                )
-
-                while (
-                    offset + n <
-                    wordLength
-                ) {
-
-                    offset++
-
-                    val end =
-                        minOf(
-                            offset + n,
-                            wordLength
-                        )
-
-                    val gram =
-                        padded.substring(
-                            offset,
-                            end
-                        )
-
-                    incrementCount(
-                        counts,
-                        gram
-                    )
-                }
-
-                if (
-                    offset == 0
-                ) {
-                    break
-                }
-            }
-        }
-
-        return counts
-    }
-
-    private fun incrementCount(
-        counts: HashMap<String, Int>,
-        feature: String
-    ) {
-
-        counts[feature] =
-            (
-                    counts[feature]
-                        ?: 0
-                    ) + 1
-    }
+    internal fun createEnglishCharCounts(text: String): HashMap<String, Int> =
+        TextPreprocessor.englishCharCounts(text)
 
     // =========================================================
     // TF-IDF (ONNX LINEAR SVM SCORING)
@@ -852,29 +345,7 @@ class FakeNewsClassifier internal constructor(
         counts: HashMap<String, Int>,
         vocabulary: HashMap<String, Int>,
         idf: DoubleArray
-    ): FloatArray {
-
-        val raw = DoubleArray(idf.size)
-        var normSquared = 0.0
-
-        for ((feature, count) in counts) {
-            val index = vocabulary[feature] ?: continue
-
-            val tf = 1.0 + ln(count.toDouble())
-            val tfidf = tf * idf[index]
-            raw[index] = tfidf
-            normSquared += tfidf * tfidf
-        }
-
-        if (normSquared <= 0.0) {
-            return FloatArray(idf.size)
-        }
-
-        val norm = sqrt(normSquared)
-        return FloatArray(idf.size) { index ->
-            (raw[index] / norm).toFloat()
-        }
-    }
+    ): FloatArray = TextPreprocessor.tfidfVector(counts, vocabulary, idf)
 
     // =========================================================
     // AUTO PREDICTION
@@ -885,24 +356,9 @@ class FakeNewsClassifier internal constructor(
         content: String
     ): PredictionResult {
 
-        return when (
-            detectLanguage(
-                title,
-                content
-            )
-        ) {
-
-            ModelLanguage.INDONESIAN ->
-                predictIndonesian(
-                    title,
-                    content
-                )
-
-            ModelLanguage.ENGLISH ->
-                predictEnglish(
-                    title,
-                    content
-                )
+        return when (detectLanguage(title, content)) {
+            ModelLanguage.INDONESIAN -> predictIndonesian(title, content)
+            ModelLanguage.ENGLISH -> predictEnglish(title, content)
         }
     }
 
@@ -913,11 +369,7 @@ class FakeNewsClassifier internal constructor(
         title: String,
         content: String
     ): PredictionResult {
-
-        return predictAuto(
-            title,
-            content
-        )
+        return predictAuto(title, content)
     }
 
     // =========================================================
@@ -929,13 +381,7 @@ class FakeNewsClassifier internal constructor(
         content: String
     ): PredictionResult {
 
-        val combinedText =
-            "$title $content"
-
-        val cleaned =
-            cleanEnglishText(
-                combinedText
-            )
+        val cleaned = cleanEnglishText("$title $content")
 
         val wordTfidf = createTfidfVector(
             createEnglishWordCounts(cleaned),
@@ -952,36 +398,10 @@ class FakeNewsClassifier internal constructor(
         // ONNX sudah menyimpan bobot dan intercept English v1.3.
         val score = onnxScorer.scoreEnglish(wordTfidf, charTfidf)
 
-        val prediction =
-            when {
-
-                score <=
-                        -enUncertainThreshold -> {
-
-                    enClasses[0]
-                }
-
-                score >=
-                        enUncertainThreshold -> {
-
-                    enClasses[1]
-                }
-
-                else -> {
-
-                    LABEL_UNCERTAIN
-                }
-            }
-
         return PredictionResult(
-            label =
-                prediction,
-
-            score =
-                score,
-
-            language =
-                ModelLanguage.ENGLISH
+            label = TextPreprocessor.decideEnglishLabel(score, enUncertainThreshold, enClasses),
+            score = score,
+            language = ModelLanguage.ENGLISH
         )
     }
 
@@ -1002,13 +422,7 @@ class FakeNewsClassifier internal constructor(
         content: String
     ): PredictionResult {
 
-        val combinedText =
-            "$title $content"
-
-        val cleaned =
-            cleanIndonesianText(
-                combinedText
-            )
+        val cleaned = cleanIndonesianText("$title $content")
 
         val tfidf = createTfidfVector(
             createIndonesianWordCounts(cleaned),
@@ -1019,42 +433,10 @@ class FakeNewsClassifier internal constructor(
         // ONNX sudah menyimpan bobot dan intercept Political v3.
         val score = onnxScorer.scoreIndonesian(tfidf)
 
-        val rawClass =
-            if (
-                score >= idThreshold
-            ) {
-
-                idClasses[1]
-
-            } else {
-
-                idClasses[0]
-            }
-
-        val appLabel =
-            when (
-                rawClass
-            ) {
-
-                0 ->
-                    LABEL_REAL
-
-                1 ->
-                    LABEL_FAKE
-
-                else ->
-                    LABEL_UNCERTAIN
-            }
-
         return PredictionResult(
-            label =
-                appLabel,
-
-            score =
-                score,
-
-            language =
-                ModelLanguage.INDONESIAN
+            label = TextPreprocessor.decideIndonesianLabel(score, idThreshold, idClasses),
+            score = score,
+            language = ModelLanguage.INDONESIAN
         )
     }
 }
