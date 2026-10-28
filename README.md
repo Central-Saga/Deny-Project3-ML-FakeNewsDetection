@@ -209,6 +209,9 @@ Notebook utama:
 
 ```
 Deny-Project3-Final/          ← root repo
+├── .github/
+│   └── workflows/
+│       └── android.yml       ← GitHub Actions CI (unit tests & lint)
 ├── android-app/              ← modul Android
 │   ├── gradlew               ← Unix wrapper (mode 100755, eol=lf)
 │   ├── gradlew.bat           ← Windows wrapper
@@ -216,9 +219,10 @@ Deny-Project3-Final/          ← root repo
 │   │   └── gradle-wrapper.jar
 │   ├── app/                  ← application module
 │   └── build.gradle.kts
-├── backend/
-├── docs/
-├── .gitattributes            ← menjaga mode & eol gradlew
+├── data/                     ← dataset ISOT & parity fixtures
+├── docs/                     ← dokumentasi & screenshots
+├── src/                      ← pipeline training, export, evaluation ML
+├── .gitattributes            ← menjaga mode 100755 & eol gradlew
 └── README.md
 ```
 
@@ -264,6 +268,13 @@ export ANDROID_HOME=/path/to/android/sdk
 ```
 android-app/app/build/outputs/apk/debug/app-debug.apk
 ```
+
+### Continuous Integration (CI)
+
+Repository dilengkapi dengan GitHub Actions workflow di `.github/workflows/android.yml`:
+- **Trigger**: Setiap `push` ke `main`, branch `fix/**`, `feat/**`, dan `pull_request` ke `main`.
+- **Environment**: Ubuntu Latest dengan JDK 21 (Temurin) dan Gradle Cache.
+- **Tasks**: Menjalankan unit tests (`testDebugUnitTest`) dan static analysis (`lint`) secara otomatis pada sub-proyek `android-app/`.
 
 ### Verification
 

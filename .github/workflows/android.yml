@@ -1,0 +1,39 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'fix/**'
+      - 'feat/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Unit Test & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Verify Gradle wrapper executable
+        run: chmod +x gradlew
+        working-directory: android-app
+
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+        working-directory: android-app
+
+      - name: Run Lint
+        run: ./gradlew lint --no-daemon
+        working-directory: android-app
