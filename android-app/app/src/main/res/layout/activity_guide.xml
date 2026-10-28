@@ -549,7 +549,7 @@
 
 
             <!-- ================================================= -->
-            <!-- IMPORTANT DISCLAIMER -->
+            <!-- IMPORTANT DISCLAIMER & LIMITATIONS -->
             <!-- ================================================= -->
 
             <LinearLayout
@@ -563,7 +563,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Penting"
+                    android:text="Penting: Keterbatasan &amp; Bukan Verifikasi Fakta"
                     android:textColor="#B45309"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -571,9 +571,9 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="7dp"
-                    android:lineSpacingExtra="3dp"
-                    android:text="Hasil aplikasi merupakan prediksi berdasarkan pola teks yang dipelajari model. Hasil tidak boleh dianggap sebagai verifikasi fakta secara real-time."
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="• Hasil aplikasi murni merupakan klasifikasi pola teks statistik secara offline, BUKAN verifikasi fakta secara real-time (bukan fact-checking kebenaran peristiwa).\n\n• Model Indonesia v3 dilatih khusus untuk berita politik. Teks di luar ranah politik (seperti kesehatan, olahraga, resep, atau hiburan) dapat diprediksi secara keliru.\n\n• Model membutuhkan judul dan isi berita yang memadai (minimal beberapa kalimat). Teks yang terlalu pendek tidak memiliki sinyal kata yang cukup.\n\n• Selalu lakukan verifikasi mandiri melalui sumber berita kredibel atau situs cek fakta resmi."
                     android:textColor="#765D3E"
                     android:textSize="12sp" />
 
