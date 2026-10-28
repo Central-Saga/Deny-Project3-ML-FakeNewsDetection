@@ -6,69 +6,43 @@ Project Machine Learning untuk melakukan klasifikasi artikel berita menjadi \*\*
 
 
 
-\## Dataset
+## Dataset
 
+Aplikasi menggunakan dua sumber dataset untuk melatih kedua model bahasa:
 
+### 1. English: ISOT Fake News Dataset
+- **Sumber**: Information Security and Object Technology (ISOT) Research Lab, University of Victoria.
+- **Sitasi**: Ahmed H, Traore I, Saad S. *"Detection of Online Fake News Using N-Gram Analysis and Machine Learning Techniques."* In: Intelligent, Secure, and Dependable Systems in Distributed and Cloud Environments. Springer (2017).
+- **Lisensi**: Non-Commercial Research & Educational Use.
+- **Distribusi Data**:
+  - `FAKE`: 23.481 artikel (situs hoaks yang diverifikasi PolitiFact & Wikipedia, 2016–2017)
+  - `REAL`: 21.417 artikel (artikel resmi dari Reuters.com, 2016–2017)
+  - Total data awal: 44.898 artikel (setelah cleaning: 44.680 artikel)
+  - Pembagian: 80% Training (35.744 artikel) dan 20% Testing (8.936 artikel / 8.980 evaluasi produksi).
 
-Dataset yang digunakan adalah \*\*Fake and Real News Dataset (ISOT)\*\*.
+### 2. Indonesian: Indonesian Political Dataset
+- **Sumber**: Kompilasi artikel berita politik nasional dari arsip verifikasi cek fakta (TurnBackHoax / MAFINDO) dan portal berita nasional kredibel (Antara, Detik, Kompas).
+- **Cakupan**: Khusus ranah wacana politik Indonesia (`"scope": "political_news"`).
+- **Lisensi**: Open Research Data (NLP Research).
+- **Distribusi Data**:
+  - `REAL (0)`: 3.000 artikel berita politik faktual
+  - `FAKE (1)`: 3.000 artikel klaim politik hoaks/menyesatkan
+  - Total: 6.000 artikel (Split 80:20 → 4.800 Training, 1.200 Testing terstratifikasi seimbang 50%:50%).
 
+Petunjuk pengunduhan dan penataan dataset tersedia di [`data/README.md`](data/README.md).
 
+## Tahapan Machine Learning
 
-Jumlah data awal:
-
-\- FAKE: 23.481 artikel
-
-\- REAL: 21.417 artikel
-
-\- Total: 44.898 artikel
-
-
-
-Setelah proses cleaning, jumlah data yang digunakan adalah 44.680 artikel.
-
-
-
-\## Tahapan Machine Learning
-
-
-
-1\. Pengumpulan Dataset
-
-2\. Pelabelan Data
-
-3\. Data Cleaning
-
-4\. Text Preprocessing
-
-5\. Analisis Distribusi Data
-
-6\. Train-Test Split
-
-7\. TF-IDF
-
-8\. Training Model
-
-9\. Evaluasi Model
-
-10\. Prediksi Berita Baru
-
-
-
-\## Pembagian Dataset
-
-
-
-\- Training: 80%
-
-\- Testing: 20%
-
-
-
-Jumlah:
-
-\- Training: 35.744 data
-
-\- Testing: 8.936 data
+1. Pengumpulan Dataset
+2. Pelabelan Data
+3. Data Cleaning
+4. Text Preprocessing
+5. Analisis Distribusi Data
+6. Train-Test Split (80% Train, 20% Test)
+7. Ekstraksi Fitur TF-IDF
+8. Training Model (Linear SVM)
+9. Evaluasi Model & Uji Paritas
+10. Prediksi Berita Baru (ONNX Runtime)
 
 
 
@@ -363,8 +337,56 @@ Catatan: hasil evaluasi pada bagian awal README berasal dari
 eksperimen Machine Learning sebelumnya dan tidak otomatis
 merepresentasikan akurasi kedua model ONNX yang digunakan aplikasi.
 
-Prediksi model adalah klasifikasi berdasarkan pola teks,
-bukan verifikasi fakta secara real-time.
+---
+
+## Keterbatasan & Kapan Jangan Dipakai (Model Limitations)
+
+Sebagai proyek Machine Learning yang bertanggung jawab (*Responsible AI*), bagian ini merinci keterbatasan intrinsik dari model, representasi data, dan kondisi di mana model **tidak boleh** digunakan.
+
+### 1. Leakage & Artefak Penerbit pada Dataset ISOT (English Model)
+- **Publisher Bias**: Pada dataset ISOT, seluruh berita `REAL` berasal dari satu kantor berita resmi (*Reuters.com*) dengan konvensi penulisan terstruktur dan dateline khas (mis. *"WASHINGTON (Reuters) -"*), sedangkan berita `FAKE` berasal dari berbagai situs tidak resmi dengan gaya penulisan bebas.
+- **Dampak**: Model Linear SVM dengan Dual TF-IDF 150.000 fitur (100k kata + 50k karakter) memisahkan kelas berdasarkan gaya editorial penerbit (*writing style & artifacts*), bukan karena memverifikasi kebenaran fakta yang dikandung berita.
+- **Konsekuensi**: Akurasi **98,92%** pada dataset ISOT **tidak mencerminkan kemampuan mendeteksi hoaks baru di alam liar**. Berita faktual modern dari portal selain Reuters dapat dengan mudah salah diklasifikasikan sebagai FAKE.
+
+### 2. Batasan Domain Spesifik (Model Indonesian Political v3)
+- **Domain Tertutup**: Model Indonesia v3 dilatih secara spesifik pada artikel wacana politik (`"scope": "political_news"`).
+- **Out-of-Distribution (OOD)**: Artikel di luar ranah politik (seperti kesehatan, resep makanan, olahraga, sains, hiburan, teknologi, atau gaya hidup) **berada di luar domain pelatihan**. Model akan memaksakan prediksi biner (REAL atau FAKE) pada topik tersebut, menghasilkan kesimpulan yang tidak valid.
+
+### 3. Deteksi Bahasa Berbasis Heuristik
+- Klasifikasi bahasa menggunakan metode pencocokan kata kunci frekuensi tinggi (`indonesianHints` dan `englishHints`).
+- **Risiko Salah Jalur**:
+  - Teks dengan percampuran bahasa (*code-mixing* atau bahasa gaul) dapat salah diarahkan ke model yang keliru.
+  - Teks yang sangat pendek (< 5 kata) tanpa kata kunci bahasa sering kali seri dan dialihkan secara default ke model Indonesia.
+
+### 4. Batasan Panjang Teks Minimum
+- Representasi TF-IDF memerlukan jumlah token dan variasi n-gram yang memadai untuk dinormalisasi L2.
+- Teks yang hanya berupa judul singkat (1–4 kata) tanpa tubuh berita dapat menghasilkan vektor sangat renggang atau didominasi oleh satu kata bias (mis. kata *"Breaking"*), memicu skor ekstrim yang tidak merepresentasikan isi berita sebenarnya.
+- **Rekomendasi**: Masukkan judul lengkap beserta minimal 2–3 paragraf isi berita.
+
+### 5. Ambang Keputusan & Zona UNCERTAIN
+- **English v1.3**: Menggunakan ambang `uncertain_threshold = ±0.20`.
+  - Skor dalam rentang `[-0.20, +0.20]` diberi label `UNCERTAIN` demi menjaga precision tinggi pada prediksi tegas (coverage ~88,4%).
+- **Indonesian v3**: Menggunakan `threshold = 0.10` (skor $\ge 0.10 \to$ FAKE, $< 0.10 \to$ REAL).
+  - Skor yang berada sangat dekat dengan `0.10` (misalnya `0.09` vs `0.11`) memiliki margin keyakinan statistik yang tipis.
+
+### 6. Contoh Kasus Prediksi Salah (Prediction Failures)
+
+Tabel berikut menunjukkan 3 contoh nyata kasus kegagalan prediksi pada model ONNX yang terpasang di aplikasi untuk memberikan ekspektasi yang realistis kepada pengguna:
+
+| No | Teks Input | Label Aktual | Prediksi Model (Skor) | Penjelasan Penyebab Kegagalan |
+|---|---|---|---|---|
+| **1** | *"Breaking news updates from the local community event yesterday."* | **REAL (1)** | **FAKE (0)**<br>(Skor: `-1.8020`) | **ISOT Publisher Leakage**: Berita lokal nyata berbahasa Inggris tanpa format resmi Reuters. Frasa sensasional *"Breaking news"* sangat diasosiasikan dengan berita palsu pada dataset ISOT, sehingga model memprediksinya sebagai FAKE. |
+| **2** | *"Resep cara membuat nasi goreng enak dan lezat di rumah"* | **REAL (1)** | **FAKE (0)**<br>(Skor: `+0.7263`) | **Out-of-Domain (Non-Politik)**: Teks resep masakan dipaksa dievaluasi oleh model Political v3. Kosakata kuliner (*resep, enak, lezat*) tidak ada dalam wacana politik latih, menyebabkan skor terdistorsi ke kelas hoaks. |
+| **3** | *"Breaking news"* | **REAL (1)** | **FAKE (0)**<br>(Skor: `-3.4817`) | **Teks Terlalu Pendek**: Teks 2 kata tanpa isi paragraf. Model tidak memiliki token penyeimbang untuk normalisasi TF-IDF, sehingga bobot kata *"Breaking"* mendominasi secara mutlak ke arah FAKE. |
+
+### 7. Penafian Penggunaan (Bukan Fact-Checker)
+
+> [!WARNING]
+> **PENTING: Aplikasi ini BUKAN alat verifikasi fakta (Fact-Checker).**
+> - Prediksi model dihasilkan secara **offline** murni berdasarkan kemiripan pola teks statistik dengan dataset latih historis.
+> - Model **tidak memiliki koneksi internet** dan **tidak mengetahui peristiwa dunia nyata terkini**.
+> - Jangan pernah menggunakan hasil analisis aplikasi sebagai satu-satunya dasar pengambilan keputusan hukum, jurnalistik, atau sosial. Lakukan selalu verifikasi silang ke sumber berita kredibel atau lembaga pemeriksa fakta resmi (seperti CekFakta, MAFINDO, PolitiFact, atau Reuters Fact Check).
+
 ---
 
 ## Fitur Aplikasi Android
@@ -531,5 +553,5 @@ Ringkasan perbandingan metrik eksperimen awal notebook vs artefak ONNX produksi 
 
 Metrik resmi artefak ONNX tersimpan di `android-app/app/src/main/assets/metrics.json` yang dihasilkan `src/evaluate.py` setelah proses regenerasi dan evaluasi.
 
-Aplikasi melakukan klasifikasi berdasarkan pola teks, bukan verifikasi kebenaran berita secara real-time.
+Aplikasi melakukan klasifikasi berdasarkan pola teks statistik offline, bukan verifikasi kebenaran berita secara real-time. Untuk pemahaman mendalam mengenai batasan domain, publisher bias ISOT, dan ambang keputusan, lihat bagian [Keterbatasan & Kapan Jangan Dipakai](#keterbatasan--kapan-jangan-dipakai-model-limitations).
 
