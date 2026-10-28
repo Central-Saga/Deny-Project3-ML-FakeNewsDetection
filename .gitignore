@@ -38,6 +38,8 @@ venv/
 # Signing secrets
 *.keystore
 *.jks
+keystore.properties
+**/keystore.properties
 
 # Operating system
 .DS_Store

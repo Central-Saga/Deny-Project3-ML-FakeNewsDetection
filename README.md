@@ -237,11 +237,109 @@ Atau ekspor environment variable:
 export ANDROID_HOME=/path/to/android/sdk
 ```
 
-### Lokasi APK
+### Lokasi APK Debug
 
 ```
 android-app/app/build/outputs/apk/debug/app-debug.apk
 ```
+
+---
+
+### Build Release, Signing & R8 Minify
+
+Build tipe `release` telah dikonfigurasi dengan **R8 Code Shrinking** (`isMinifyEnabled = true`), **Resource Shrinking** (`isShrinkResources = true`), dan **Release Keystore Signing** otomatis.
+
+#### 1. Buat Keystore Rilis (Local / CI)
+
+> [!CAUTION]
+> **JANGAN PERNAH** me-commit file `.jks`, `.keystore`, atau file `keystore.properties` yang berisi credential asli ke repositori Git. File-file tersebut sudah diabaikan di `.gitignore`.
+
+Jalankan perintah berikut untuk membuat keystore baru:
+
+```bash
+keytool -genkeypair -v \
+  -keystore release-key.jks \
+  -alias fakenews-release-key \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000 \
+  -storetype JKS
+```
+
+Simpan file `release-key.jks` di direktori yang aman (misalnya di folder `android-app/` lokal atau path absolut di luar repo).
+
+#### 2. Konfigurasi `keystore.properties`
+
+Salin template `keystore.properties.example` ke `keystore.properties`:
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item keystore.properties.example android-app\keystore.properties
+```
+
+**Linux / macOS:**
+```bash
+cp keystore.properties.example android-app/keystore.properties
+```
+
+Isi kredensial sesuai keystore yang telah dibuat:
+
+```properties
+storeFile=release-key.jks
+storePassword=password_keystore_anda
+keyAlias=fakenews-release-key
+keyPassword=password_key_anda
+```
+
+*Catatan: Gradle mendeteksi `keystore.properties` baik di direktori `android-app/` maupun di root repository. Jika `storeFile` berupa path relatif, path dihitung relatif terhadap folder tempat `keystore.properties` berada.*
+
+#### 3. Eksekusi Build Release
+
+**Windows (PowerShell):**
+```powershell
+cd android-app
+.\gradlew.bat --no-daemon clean assembleRelease
+```
+
+**Linux / macOS:**
+```bash
+cd android-app
+./gradlew --no-daemon clean assembleRelease
+```
+
+> [!NOTE]
+> Jika `assembleRelease` dijalankan tanpa konfigurasi `keystore.properties`, Gradle akan **fail-fast** dengan pesan error yang jelas dan instruksi pembuatan credential. Untuk build non-release (`assembleDebug`, unit tests), `keystore.properties` tidak diwajibkan sehingga build lokal & CI tetap berjalan mulus.
+
+#### 4. Lokasi APK Release
+
+Hasil build berupa APK yang sudah ditandatangani (signed):
+```
+android-app/app/build/outputs/apk/release/app-release.apk
+```
+
+#### 5. Verifikasi Signature APK (`apksigner`)
+
+Verifikasi penandatanganan APK menggunakan tool `apksigner` dari Android SDK Build-Tools:
+
+```bash
+apksigner verify --verbose --print-certs android-app/app/build/outputs/apk/release/app-release.apk
+```
+
+Hasil verifikasi yang valid:
+- `Verifies: true`
+- `Verified using v2 scheme (APK Signature Scheme v2): true`
+- Informasi sertifikat signer (DN, SHA-256 digest, key algorithm RSA 2048).
+
+#### 6. Optimasi R8 Minify & ProGuard Rules
+
+Aplikasi memanfaatkan runtime ONNX (`ai.onnxruntime:onnxruntime-android`) dan model ML offline. Pada mode release:
+- **DEX Code Shrinking**: Ukuran file bytecode DEX berkurang drastis dari ~12.7 MB (4 multi-dex pada mode debug) menjadi hanya **~952 KB** (1 file `classes.dex` tunggal pada release).
+- **Resource Shrinking**: Menghapus resource dan layout yang tidak terpakai (`isShrinkResources = true`).
+- **Keep Rules (`proguard-rules.pro`)**:
+  - Mempertahankan seluruh class runtime ONNX (`ai.onnxruntime.**`) beserta native JNI methods agar inferensi offline C++ tetap berfungsi sempurna.
+  - Mempertahankan model scorer dan preprocessor (`FakeNewsClassifier`, `OnnxSvmScorer`, `TextPreprocessor`) untuk menjamin paritas inferensi model EN & ID.
+
+---
 
 ### Continuous Integration (CI)
 
@@ -252,10 +350,10 @@ Repository dilengkapi dengan GitHub Actions workflow di `.github/workflows/andro
 
 ### Verification
 
-Fresh clone build berhasil pada Windows 11.
-Build: SUCCESSFUL (33 detik).
-APK: berhasil dibuat.
-Git working tree: clean.
+- Build Release Signed: `app-release.apk` berhasil dibuat via `./gradlew assembleRelease`.
+- Signature Verification: Lolos verifikasi `apksigner verify` dengan APK Signature Scheme v2.
+- Minify / Code Shrink: Berhasil memangkas DEX ~92% tanpa merusak runtime ONNX maupun inferensi bahasa EN dan ID.
+- Git Working Tree: Bersih dari artefak `.jks` dan credential release.
 ---
 
 ## Android Offline Machine Learning Inference

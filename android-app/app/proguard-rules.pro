@@ -1,21 +1,28 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ProGuard / R8 Rules for FakeNews AI
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve line numbers and source file attributes for crash diagnostics
+-keepattributes SourceFile,LineNumberTable,*Annotation*,Signature,InnerClasses,EnclosingMethod
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ===========================================================================
+# ONNX Runtime Android & JNI Rules
+# ===========================================================================
+-keep class ai.onnxruntime.** { *; }
+-keepclassmembers class ai.onnxruntime.** {
+    native <methods>;
+    *;
+}
+-dontwarn ai.onnxruntime.**
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Preserve all native methods across the application
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# ===========================================================================
+# ML Pipeline & Classifier Classes
+# ===========================================================================
+-keep class com.example.fakenewsdetection.FakeNewsClassifier** { *; }
+-keep class com.example.fakenewsdetection.OnnxSvmScorer** { *; }
+-keep class com.example.fakenewsdetection.TextPreprocessor** { *; }
+-keep class com.example.fakenewsdetection.LocalHistoryManager** { *; }
