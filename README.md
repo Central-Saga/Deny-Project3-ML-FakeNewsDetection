@@ -92,57 +92,64 @@ Jumlah fitur:
 
 
 
-\## Model yang Dibandingkan
+## Metrik Evaluasi Model Produksi (Artefak ONNX + JSON)
 
+Berikut adalah metrik resmi dari model artefak ONNX yang digunakan langsung oleh aplikasi Android (tersimpan di `android-app/app/src/main/assets/metrics.json` dan dihasilkan ulang melalui `python src/evaluate.py`):
 
+### 1. English Model v1.3 (`fake_news_model_en_v13.onnx`)
+- **Arsitektur**: Linear SVM dengan Dual TF-IDF (100.000 fitur kata n-gram (1,2) + 50.000 fitur karakter n-gram (3,5))
+- **Total Sampel Uji**: 8.980 data testing (ISOT dataset)
+- **Uncertain Threshold**: `±0.20`
+- **Coverage**: 88,42% (prediksi tegas REAL/FAKE di luar zona uncertain)
+- **Accuracy (Confident)**: **98,92%**
+- **F1-Score (Confident)**: **98,89%**
+- **Confusion Matrix (Confident)**:
+  | | Prediksi FAKE (0) | Prediksi REAL (1) |
+  |---|---|---|
+  | **Aktual FAKE (0)** | 4.320 | 52 |
+  | **Aktual REAL (1)** | 41 | 4.127 |
+- **Uji Paritas Python vs Kotlin (ONNX)**: **20/20 PASS** (selisih skor max 0.0, toleransi 1e-3)
 
-\### Multinomial Naive Bayes
+### 2. Indonesian Political Model v3 (`fake_news_model_id_political_v3.onnx`)
+- **Arsitektur**: Linear SVM dengan Word TF-IDF (100.000 fitur kata n-gram (1,2))
+- **Total Sampel Uji**: 1.200 data testing berita politik Indonesia
+- **Decision Threshold**: `0.10`
+- **Accuracy**: **94,17%**
+- **F1-Score**: **93,88%**
+- **Confusion Matrix**:
+  | | Prediksi FAKE (0) | Prediksi REAL (1) |
+  |---|---|---|
+  | **Aktual FAKE (0)** | 570 | 30 |
+  | **Aktual REAL (1)** | 40 | 560 |
+- **Uji Paritas Python vs Kotlin (ONNX)**: **10/10 PASS** (selisih skor max 0.0, toleransi 1e-3)
 
+---
 
+## Eksperimen Awal Notebook (Model .pkl & Baseline)
 
-\- Accuracy: 93.49%
+Metrik berikut adalah hasil eksperimen awal pada notebook (`fake_news_detection.ipynb`) menggunakan TF-IDF 50.000 fitur tunggal untuk perbandingan algoritma dasar:
 
-\- Precision: 93.55%
+### Multinomial Naive Bayes
+- Accuracy: 93.49%
+- Precision: 93.55%
+- Recall: 92.67%
+- F1-Score: 93.11%
 
-\- Recall: 92.67%
+### Logistic Regression
+- Accuracy: 97.94%
+- Precision: 97.61%
+- Recall: 98.07%
+- F1-Score: 97.84%
 
-\- F1-Score: 93.11%
+### Linear SVM
+- Accuracy: 98.95%
+- Precision: 98.85%
+- Recall: 98.94%
+- F1-Score: 98.89%
 
+## Final Model
 
-
-\### Logistic Regression
-
-
-
-\- Accuracy: 97.94%
-
-\- Precision: 97.61%
-
-\- Recall: 98.07%
-
-\- F1-Score: 97.84%
-
-
-
-\### Linear SVM
-
-
-
-\- Accuracy: 98.95%
-
-\- Precision: 98.85%
-
-\- Recall: 98.94%
-
-\- F1-Score: 98.89%
-
-
-
-\## Final Model
-
-
-
-Berdasarkan hasil evaluasi pada data testing, Linear SVM memperoleh performa tertinggi pada eksperimen ini.
+Berdasarkan hasil perbandingan algoritma pada data testing, Linear SVM memperoleh performa tertinggi dan dipilih sebagai model dasar yang kemudian diekspor menjadi artefak ONNX untuk aplikasi Android.
 
 
 
@@ -458,39 +465,48 @@ python src/train.py --data-dir data/ --out-dir models/
 python src/export_android.py --model-dir models/ \
     --out-dir android-app/app/src/main/assets/
 
-# 4. Evaluasi artefak ONNX + uji paritas
+# 4. Evaluasi artefak ONNX + uji paritas Python vs Kotlin
 python src/evaluate.py --data-dir data/ \
     --assets-dir android-app/app/src/main/assets/
 # Output: android-app/app/src/main/assets/metrics.json
+
+# 5. Uji paritas dan unit test Kotlin di Android
+cd android-app && ./gradlew test
 ```
 
-### Struktur src/
+### Struktur File ML & Uji Paritas
 
 ```
 src/
-├── train.py           # Latih LinearSVC EN + ID dari dataset mentah → .pkl
-├── export_android.py  # Konversi .pkl → ONNX + JSON (format aplikasi Android)
-└── evaluate.py        # Evaluasi ONNX, confusion matrix, uji paritas 20 sampel
+├── train.py              # Latih LinearSVC EN + ID dari dataset mentah -> .pkl
+├── export_android.py     # Konversi .pkl -> ONNX + JSON (format aplikasi Android)
+├── evaluate.py           # Evaluasi ONNX, confusion matrix, uji paritas Python vs Kotlin
+└── parity_fixtures.json  # Fixture skor Kotlin ter-commit untuk uji paritas (toleransi 1e-3)
 data/
 ├── .gitkeep
-├── README.md          # Petunjuk download dataset
-├── Fake.csv           # (tidak di-commit — terlalu besar)
-├── True.csv           # (tidak di-commit)
-└── id_political.csv   # (tidak di-commit)
-models/                # Output train.py — tidak di-commit
-requirements-src.txt   # Dependensi terpin untuk src/
+├── README.md             # Petunjuk download dataset
+├── Fake.csv              # (tidak di-commit — terlalu besar)
+├── True.csv              # (tidak di-commit)
+├── id_political.csv      # (tidak di-commit)
+└── parity_fixtures.json  # Salinan fixture ter-commit
+fake_news_detection.ipynb # Notebook naratif yang memanggil pipeline src/
+models/                   # Output train.py — tidak di-commit
+requirements-src.txt      # Dependensi terpin untuk src/
+android-app/app/src/test/java/com/example/fakenewsdetection/
+└── FakeNewsClassifierTest.kt # 17 Unit test Kotlin pengunci paritas preprocessing
 ```
 
 ### Catatan Evaluasi Machine Learning
 
-Metrik di bagian awal README (93,49% / 97,94% / 98,95%) adalah hasil
-eksperimen awal pada notebook dengan TF-IDF 50k fitur dan model `.pkl`.
+Ringkasan perbandingan metrik eksperimen awal notebook vs artefak ONNX produksi aplikasi:
 
-Artefak yang sebenarnya dipakai aplikasi (EN v1.3 dan ID Political v3)
-menggunakan konfigurasi berbeda (100k word + 50k char untuk EN).
-Metrik resmi artefak ONNX tersimpan di `metrics.json` yang dihasilkan
-`src/evaluate.py` setelah regenerasi.
+| Model Artefak | Format | Fitur TF-IDF | Sampel Uji | Accuracy | F1-Score | Status Uji Paritas Kotlin |
+|---|---|---|---|---|---|---|
+| **Eksperimen Awal (Notebook)** | `.pkl` | 50.000 (Word) | 8.936 | 98,95% | 98,89% | N/A (Colab only) |
+| **English v1.3 (Produksi)** | `.onnx` + `.json` | 100k Word + 50k Char | 8.980 | **98,92%** (confident) | **98,89%** | **20/20 PASS** (tol 1e-3) |
+| **Indonesian Political v3 (Produksi)** | `.onnx` + `.json` | 100k Word | 1.200 | **94,17%** | **93,88%** | **10/10 PASS** (tol 1e-3) |
 
-Aplikasi melakukan klasifikasi berdasarkan pola teks,
-bukan verifikasi kebenaran berita secara real-time.
+Metrik resmi artefak ONNX tersimpan di `android-app/app/src/main/assets/metrics.json` yang dihasilkan `src/evaluate.py` setelah proses regenerasi dan evaluasi.
+
+Aplikasi melakukan klasifikasi berdasarkan pola teks, bukan verifikasi kebenaran berita secara real-time.
 

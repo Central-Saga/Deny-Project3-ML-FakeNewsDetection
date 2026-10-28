@@ -1,0 +1,216 @@
+{
+  "indonesian_samples": [
+    {
+      "sentence": "Presiden Joko Widodo meresmikan jalan tol baru di Jawa Tengah",
+      "score_kotlin": 0.47332635521888733,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 0
+    },
+    {
+      "sentence": "Beredar kabar pemerintah membagikan bantuan uang tunai 100 juta rupiah lewat whatsapp",
+      "score_kotlin": 1.2774510383605957,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 1
+    },
+    {
+      "sentence": "Kementerian Keuangan mengumumkan realisasi anggaran pendapatan belanja negara",
+      "score_kotlin": 0.40719711780548096,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 2
+    },
+    {
+      "sentence": "Minum air rebusan daun cabai dapat menyembuhkan stroke secara instan",
+      "score_kotlin": 0.6718326210975647,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 3
+    },
+    {
+      "sentence": "Gubernur Bank Indonesia menyampaikan stabilitas nilai tukar rupiah tetap terjaga",
+      "score_kotlin": 0.5486083030700684,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 4
+    },
+    {
+      "sentence": "Foto viral memperlihatkan menteri ditangkap KPK di bandara soekarno hatta",
+      "score_kotlin": 1.1474064588546753,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 5
+    },
+    {
+      "sentence": "Kementerian Kesehatan mengimbau masyarakat waspada terhadap perubahan cuaca",
+      "score_kotlin": 0.3798549771308899,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 6
+    },
+    {
+      "sentence": "Beredar klaim pendaftaran bansos khusus pemilu melalui link telegram",
+      "score_kotlin": 0.5183699131011963,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 7
+    },
+    {
+      "sentence": "DPR menyetujui rancangan undang-undang dalam rapat paripurna hari ini",
+      "score_kotlin": 0.16456979513168335,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 8
+    },
+    {
+      "sentence": "Masyarakat diminta waspada modus penipuan berkedok undian berhadiah bank",
+      "score_kotlin": 0.6407061815261841,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 9
+    }
+  ],
+  "english_samples": [
+    {
+      "sentence": "Breaking: President signs new trade deal with Europe",
+      "score_kotlin": -0.9711121320724487,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 0
+    },
+    {
+      "sentence": "Aliens land in Washington DC, government confirms",
+      "score_kotlin": -0.8116978406906128,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 1
+    },
+    {
+      "sentence": "Federal Reserve raises interest rates by 0.25 percent",
+      "score_kotlin": -0.20488178730010986,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 2
+    },
+    {
+      "sentence": "Doctors say drinking bleach cures all diseases",
+      "score_kotlin": -0.7488364577293396,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 3
+    },
+    {
+      "sentence": "Congress passes bipartisan infrastructure bill",
+      "score_kotlin": -0.3233828842639923,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 4
+    },
+    {
+      "sentence": "Obama secretly born on Mars, leaked documents show",
+      "score_kotlin": -1.4190551042556763,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 5
+    },
+    {
+      "sentence": "Scientists discover new species of deep-sea fish",
+      "score_kotlin": -0.5067143440246582,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 6
+    },
+    {
+      "sentence": "Vaccines contain microchips that track your location",
+      "score_kotlin": -0.6278051137924194,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 7
+    },
+    {
+      "sentence": "Stock markets rally on positive jobs report",
+      "score_kotlin": -0.771041989326477,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 8
+    },
+    {
+      "sentence": "Pope Francis reveals he is an alien from another galaxy",
+      "score_kotlin": -1.337040901184082,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 9
+    },
+    {
+      "sentence": "WHO issues new guidelines on COVID-19 prevention",
+      "score_kotlin": -0.18741565942764282,
+      "expected_label": 1,
+      "predicted_label_kotlin": -1,
+      "index": 10
+    },
+    {
+      "sentence": "Hillary Clinton runs secret pizza parlor crime ring",
+      "score_kotlin": -1.231665849685669,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 11
+    },
+    {
+      "sentence": "NASA successfully launches new weather satellite",
+      "score_kotlin": -0.8891640305519104,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 12
+    },
+    {
+      "sentence": "5G towers are spreading coronavirus, experts warn",
+      "score_kotlin": -0.5070395469665527,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 13
+    },
+    {
+      "sentence": "Supreme Court rules on landmark voting rights case",
+      "score_kotlin": -0.3526179790496826,
+      "expected_label": 1,
+      "predicted_label_kotlin": 0,
+      "index": 14
+    },
+    {
+      "sentence": "George Soros controls entire global banking system",
+      "score_kotlin": -1.6406797170639038,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 15
+    },
+    {
+      "sentence": "European Union agrees on new climate change targets",
+      "score_kotlin": 0.19527757167816162,
+      "expected_label": 1,
+      "predicted_label_kotlin": -1,
+      "index": 16
+    },
+    {
+      "sentence": "Bill Gates plans to depopulate Earth with vaccines",
+      "score_kotlin": -0.6924839615821838,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 17
+    },
+    {
+      "sentence": "United Nations holds emergency session on famine crisis",
+      "score_kotlin": 0.050337016582489014,
+      "expected_label": 1,
+      "predicted_label_kotlin": -1,
+      "index": 18
+    },
+    {
+      "sentence": "Chemtrails are government mind control program revealed",
+      "score_kotlin": -0.9258978366851807,
+      "expected_label": 0,
+      "predicted_label_kotlin": 0,
+      "index": 19
+    }
+  ]
+}

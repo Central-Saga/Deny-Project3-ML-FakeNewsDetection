@@ -1,4 +1,4 @@
-﻿# train.py — latih model EN v1.3 dan ID Political v3 dari dataset mentah
+# train.py — latih model EN v1.3 dan ID Political v3 dari dataset mentah
 # Dipanggil oleh: python src/train.py --data-dir data/ --out-dir models/
 # Output: models/svm_en.pkl, models/tfidf_word_en.pkl, models/tfidf_char_en.pkl
 #         models/svm_id.pkl, models/tfidf_id.pkl
@@ -89,7 +89,7 @@ def train_english(data_dir: str, out_dir: str, seed: int):
     print("  Melatih TF-IDF char (50k fitur, sublinear_tf)...")
     tfidf_char = TfidfVectorizer(
         analyzer="char_wb",
-        ngram_range=(2, 4),
+        ngram_range=(3, 5),
         max_features=50_000,
         sublinear_tf=True,
         norm="l2",
