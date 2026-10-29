@@ -285,17 +285,14 @@ class HistoryActivity : AppCompatActivity() {
                     LinearLayout.VERTICAL
 
                 setPadding(
+                    dp(20),
                     dp(18),
-                    dp(18),
-                    dp(18),
-                    dp(18)
+                    dp(20),
+                    dp(16)
                 )
 
                 background =
                     createCardBackground()
-
-                elevation =
-                    dp(1).toFloat()
 
                 layoutParams =
                     LinearLayout.LayoutParams(
@@ -304,7 +301,7 @@ class HistoryActivity : AppCompatActivity() {
                     ).apply {
 
                         bottomMargin =
-                            dp(14)
+                            dp(12)
                     }
             }
 
@@ -334,7 +331,7 @@ class HistoryActivity : AppCompatActivity() {
             ).apply {
 
                 text =
-                    history.prediction
+                    "●  ${history.prediction}"
 
                 textSize =
                     11f
@@ -347,9 +344,9 @@ class HistoryActivity : AppCompatActivity() {
 
                 setPadding(
                     dp(12),
-                    dp(7),
+                    dp(6),
                     dp(12),
-                    dp(7)
+                    dp(6)
                 )
 
                 setTextColor(
@@ -379,11 +376,11 @@ class HistoryActivity : AppCompatActivity() {
                     )
 
                 textSize =
-                    11f
+                    11.5f
 
                 setTextColor(
                     Color.parseColor(
-                        "#9095A4"
+                        "#64748B"
                     )
                 )
 
@@ -437,12 +434,15 @@ class HistoryActivity : AppCompatActivity() {
 
                 setTextColor(
                     Color.parseColor(
-                        "#252938"
+                        "#0F172A"
                     )
                 )
 
                 maxLines =
                     2
+
+                ellipsize =
+                    android.text.TextUtils.TruncateAt.END
 
                 layoutParams =
                     LinearLayout.LayoutParams(
@@ -476,12 +476,20 @@ class HistoryActivity : AppCompatActivity() {
 
                 setTextColor(
                     Color.parseColor(
-                        "#7A8090"
+                        "#475569"
                     )
+                )
+
+                setLineSpacing(
+                    dp(2).toFloat(),
+                    1f
                 )
 
                 maxLines =
                     3
+
+                ellipsize =
+                    android.text.TextUtils.TruncateAt.END
 
                 layoutParams =
                     LinearLayout.LayoutParams(
@@ -490,13 +498,30 @@ class HistoryActivity : AppCompatActivity() {
                     ).apply {
 
                         topMargin =
-                            dp(7)
+                            dp(6)
                     }
             }
 
         card.addView(
             content
         )
+
+        // =====================================================
+        // DIVIDER
+        // =====================================================
+
+        val divider =
+            View(this).apply {
+                setBackgroundColor(Color.parseColor("#F1F5F9"))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    dp(1)
+                ).apply {
+                    topMargin = dp(14)
+                }
+            }
+
+        card.addView(divider)
 
         // =====================================================
         // DELETE
@@ -508,7 +533,7 @@ class HistoryActivity : AppCompatActivity() {
             ).apply {
 
                 text =
-                    "Hapus"
+                    "Hapus Riwayat"
 
                 textSize =
                     12f
@@ -526,11 +551,19 @@ class HistoryActivity : AppCompatActivity() {
                     Gravity.END
 
                 setPadding(
+                    dp(8),
+                    dp(10),
                     0,
-                    dp(14),
-                    0,
-                    0
+                    dp(2)
                 )
+
+                layoutParams =
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        gravity = Gravity.END
+                    }
 
                 setOnClickListener {
 
@@ -649,12 +682,12 @@ class HistoryActivity : AppCompatActivity() {
             )
 
             cornerRadius =
-                dp(20).toFloat()
+                dp(22).toFloat()
 
             setStroke(
                 dp(1),
                 Color.parseColor(
-                    "#ECEEF4"
+                    "#E2E8F0"
                 )
             )
         }
@@ -668,7 +701,7 @@ class HistoryActivity : AppCompatActivity() {
         prediction: String
     ): GradientDrawable {
 
-        val backgroundColor =
+        val (backgroundColor, strokeColor) =
             when (
                 prediction.uppercase(
                     Locale.ROOT
@@ -676,24 +709,15 @@ class HistoryActivity : AppCompatActivity() {
             ) {
 
                 "REAL NEWS" -> {
-
-                    Color.parseColor(
-                        "#EAF8EE"
-                    )
+                    Color.parseColor("#F0FDF4") to Color.parseColor("#BBF7D0")
                 }
 
                 "FAKE NEWS" -> {
-
-                    Color.parseColor(
-                        "#FDECEC"
-                    )
+                    Color.parseColor("#FEF2F2") to Color.parseColor("#FECACA")
                 }
 
                 else -> {
-
-                    Color.parseColor(
-                        "#FFF6E3"
-                    )
+                    Color.parseColor("#FFFBEB") to Color.parseColor("#FDE68A")
                 }
             }
 
@@ -706,8 +730,13 @@ class HistoryActivity : AppCompatActivity() {
                 backgroundColor
             )
 
+            setStroke(
+                dp(1),
+                strokeColor
+            )
+
             cornerRadius =
-                dp(20).toFloat()
+                dp(50).toFloat()
         }
     }
 

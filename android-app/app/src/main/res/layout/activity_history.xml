@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F7F8FC"
+    android:background="#F1F5F9"
     android:orientation="vertical">
-
 
     <!-- ===================================================== -->
     <!-- CONTENT -->
@@ -24,11 +23,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="22dp"
-            android:paddingTop="24dp"
-            android:paddingEnd="22dp"
+            android:paddingStart="20dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="20dp"
             android:paddingBottom="30dp">
-
 
             <!-- ================================================= -->
             <!-- HEADER -->
@@ -40,15 +38,21 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <TextView
+                <FrameLayout
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="@drawable/bg_logo"
-                    android:gravity="center"
-                    android:text="FN"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:elevation="2dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Logo"
+                        android:src="@drawable/ic_shield_check"
+                        app:tint="#FFFFFF" />
+
+                </FrameLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -60,46 +64,66 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:letterSpacing="-0.02"
                         android:text="Riwayat Analisis"
-                        android:textColor="#191D2B"
-                        android:textSize="22sp"
+                        android:textColor="#0F172A"
+                        android:textSize="21sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="1dp"
                         android:text="Hasil analisis tersimpan di perangkat"
-                        android:textColor="#858B9B"
-                        android:textSize="13sp" />
+                        android:textColor="#64748B"
+                        android:textSize="12sp" />
 
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_badge_indigo"
+                    android:paddingStart="10dp"
+                    android:paddingTop="5dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="5dp"
+                    android:text="LOKAL"
+                    android:textColor="#4F46E5"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
 
             <!-- ================================================= -->
-            <!-- INFORMATION CARD -->
+            <!-- INFORMATION SUMMARY CARD -->
             <!-- ================================================= -->
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/bg_card"
-                android:elevation="1dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="18dp">
 
-                <TextView
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
-                    android:background="@drawable/bg_input"
-                    android:gravity="center"
-                    android:text="◷"
-                    android:textColor="#5A54E8"
-                    android:textSize="23sp" />
+                <FrameLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_icon_box_indigo">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Riwayat"
+                        android:src="@drawable/ic_nav_history"
+                        app:tint="#4F46E5" />
+
+                </FrameLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -113,16 +137,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Belum ada hasil analisis"
-                        android:textColor="#252938"
-                        android:textSize="15sp"
+                        android:textColor="#0F172A"
+                        android:textSize="15.5sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Riwayat tersedia secara offline"
-                        android:textColor="#8A90A0"
+                        android:layout_marginTop="3dp"
+                        android:text="Tersimpan secara lokal &amp; tersedia tanpa internet"
+                        android:textColor="#64748B"
                         android:textSize="12sp" />
 
                 </LinearLayout>
@@ -137,7 +161,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="26dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -145,22 +169,24 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:fontFamily="sans-serif-black"
                     android:text="Hasil Terbaru"
-                    android:textColor="#191D2B"
-                    android:textSize="20sp"
+                    android:textColor="#0F172A"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnClearHistory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_result_fake"
                     android:paddingStart="12dp"
-                    android:paddingTop="8dp"
+                    android:paddingTop="6dp"
                     android:paddingEnd="12dp"
-                    android:paddingBottom="8dp"
+                    android:paddingBottom="6dp"
                     android:text="Hapus Semua"
                     android:textColor="#C62828"
-                    android:textSize="12sp"
+                    android:textSize="11.5sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
 
@@ -175,41 +201,48 @@
                 android:id="@+id/emptyState"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="18dp"
                 android:background="@drawable/bg_card"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:paddingStart="24dp"
-                android:paddingTop="36dp"
+                android:paddingTop="40dp"
                 android:paddingEnd="24dp"
-                android:paddingBottom="36dp">
+                android:paddingBottom="40dp">
 
-                <TextView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:background="@drawable/bg_input"
-                    android:gravity="center"
-                    android:text="◷"
-                    android:textColor="#8C89D9"
-                    android:textSize="30sp" />
+                <FrameLayout
+                    android:layout_width="68dp"
+                    android:layout_height="68dp"
+                    android:background="@drawable/bg_icon_box_indigo">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Kosong"
+                        android:src="@drawable/ic_nav_history"
+                        app:tint="#4F46E5" />
+
+                </FrameLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="16dp"
+                    android:fontFamily="sans-serif-black"
                     android:text="Belum Ada Riwayat"
-                    android:textColor="#252938"
+                    android:textColor="#0F172A"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:lineSpacingExtra="3dp"
-                    android:text="Lakukan analisis berita terlebih dahulu.&#10;Hasilnya akan muncul otomatis di sini."
-                    android:textColor="#8A90A0"
+                    android:text="Lakukan analisis berita terlebih dahulu pada tab Deteksi.&#10;Hasil prediksi akan tersimpan otomatis di sini."
+                    android:textColor="#64748B"
                     android:textSize="13sp" />
 
             </LinearLayout>
@@ -223,7 +256,7 @@
                 android:id="@+id/historyContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:orientation="vertical"
                 android:visibility="gone" />
 
@@ -235,11 +268,11 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
+                android:layout_marginTop="20dp"
                 android:gravity="center"
                 android:lineSpacingExtra="2dp"
-                android:text="Riwayat disimpan secara lokal di perangkat dan&#10;tidak memerlukan koneksi ke server."
-                android:textColor="#999EAC"
+                android:text="Riwayat disimpan secara lokal di perangkat Anda&#10;dan tidak dikirimkan ke server eksternal."
+                android:textColor="#94A3B8"
                 android:textSize="11sp" />
 
         </LinearLayout>
@@ -253,124 +286,148 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="76dp"
-        android:background="#FFFFFF"
+        android:layout_height="74dp"
+        android:background="@drawable/bg_bottom_nav"
         android:elevation="12dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp">
-
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
 
         <!-- HOME -->
-
         <LinearLayout
             android:id="@+id/navHome"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⌂"
-                android:textColor="#969CAB"
-                android:textSize="25sp" />
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="30dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Beranda"
+                    android:src="@drawable/ic_nav_home"
+                    app:tint="#94A3B8" />
+
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:text="Beranda"
-                android:textColor="#969CAB"
+                android:textColor="#94A3B8"
                 android:textSize="11sp" />
 
         </LinearLayout>
 
-
         <!-- DETECTION -->
-
         <LinearLayout
             android:id="@+id/navDetection"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⌕"
-                android:textColor="#969CAB"
-                android:textSize="25sp" />
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="30dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Deteksi"
+                    android:src="@drawable/ic_nav_detect"
+                    app:tint="#94A3B8" />
+
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:text="Deteksi"
-                android:textColor="#969CAB"
+                android:textColor="#94A3B8"
                 android:textSize="11sp" />
 
         </LinearLayout>
 
-
-        <!-- HISTORY ACTIVE -->
-
+        <!-- HISTORY (ACTIVE) -->
         <LinearLayout
             android:id="@+id/navHistory"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="◷"
-                android:textColor="#5A54E8"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="30dp"
+                android:background="@drawable/bg_nav_active_pill">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Riwayat"
+                    android:src="@drawable/ic_nav_history"
+                    app:tint="#4F46E5" />
+
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:text="Riwayat"
-                android:textColor="#5A54E8"
+                android:textColor="#4F46E5"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
-
         <!-- GUIDE -->
-
         <LinearLayout
             android:id="@+id/navGuide"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ⓘ"
-                android:textColor="#969CAB"
-                android:textSize="23sp" />
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="30dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Panduan"
+                    android:src="@drawable/ic_nav_guide"
+                    app:tint="#94A3B8" />
+
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:text="Panduan"
-                android:textColor="#969CAB"
+                android:textColor="#94A3B8"
                 android:textSize="11sp" />
 
         </LinearLayout>
