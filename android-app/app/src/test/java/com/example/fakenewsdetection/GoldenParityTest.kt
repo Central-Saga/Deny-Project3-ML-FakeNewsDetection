@@ -42,7 +42,9 @@ class GoldenParityTest {
             // Hanya vocabulary/idf/stop words yang dibutuhkan; ONNX tidak pernah dibuka.
             classifier = FakeNewsClassifier(
                 assetReader = { name ->
-                    FakeNewsClassifierTest.findAssetFile(name).readText(Charsets.UTF_8)
+                    FakeNewsClassifierTest.findAssetFile(name)
+                        .inputStream()
+                        .use { FakeNewsClassifier.readAssetText(it) }
                 },
                 onnxScorerProvider = {
                     throw IllegalStateException("Golden test tidak boleh memakai ONNX")

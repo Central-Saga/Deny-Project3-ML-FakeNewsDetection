@@ -8,6 +8,7 @@
 #   serta hasil uji paritas skor Python vs Kotlin (toleransi 1e-3).
 
 import argparse
+import gzip
 import json
 import os
 import re
@@ -22,6 +23,17 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 
 
+def load_model_json(assets_dir: str, stem: str) -> dict:
+    """Muat konfigurasi model dari .json.gz (utama) atau fallback .json."""
+    gz_path = os.path.join(assets_dir, f"{stem}.json.gz")
+    if os.path.exists(gz_path):
+        with gzip.open(gz_path, "rt", encoding="utf-8") as f:
+            return json.load(f)
+    json_path = os.path.join(assets_dir, f"{stem}.json")
+    with open(json_path, encoding="utf-8") as f:
+        return json.load(f)
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -34,7 +46,7 @@ def parse_args():
     p.add_argument(
         "--assets-dir",
         default="android-app/app/src/main/assets",
-        help="Folder berisi ONNX + JSON.",
+        help="Folder berisi ONNX + JSON.GZ.",
     )
     p.add_argument(
         "--fixture-file",
@@ -47,7 +59,7 @@ def parse_args():
 
 
 # ---------------------------------------------------------------------------
-# Preprocessing — Persis 1-to-1 dengan FakeNewsClassifier.kt (1.055 baris)
+# Preprocessing — Persis 1-to-1 dengan FakeNewsClassifier.kt
 # ---------------------------------------------------------------------------
 
 PUNCTUATION_CHARS = set("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
@@ -63,10 +75,11 @@ ID_REMOVE_PATTERNS = [
         r"\bdemikian klaim\b", r"\bdalam kategori\b", r"\bmasuk ke dalam kategori\b",
         r"\bnarasi\b", r"\bklaim\b", r"\bhoax\b", r"\bhoaks\b", r"\bfoto hoaks\b",
         r"\bturnbackhoax\b", r"\boleh akun\b", r"\bakun facebook\b", r"\bakun twitter\b",
-        r"\bakun instagram\b", r"\bdibagikan oleh\b", r"\beditor\b", r"\bpenulis\b",
+        r"\bakun instagram\b", r"\bdibagikan oleh\b", r"\beditor\b", r"\penulis\b",
         r"\breporter\b", r"\bsumber\b"
     ]
 ]
+ID_REMOVE_PATTERNS[-3] = re.compile(r"\bpenulis\b", re.IGNORECASE)
 ID_NAME_PATTERNS = [
     re.compile(p, re.IGNORECASE) for p in [
         r"\bbentang febrylian\b", r"\bfebrylian\b", r"\bjulnis firmansyah\b",
@@ -350,11 +363,6 @@ def load_fixtures(fixture_path: str) -> dict:
 
 
 def parity_test_en(cfg: dict, session, fixtures: dict, tolerance: float = 1e-3) -> dict:
-    """
-    Uji Paritas Python vs Kotlin (English v1.3).
-    Membandingkan skor inferensi Python (preprocessing 1-to-1 + ONNX/weights)
-    dengan skor yang dihasilkan oleh FakeNewsClassifier.kt dari fixture ter-commit.
-    """
     print(f"\n=== [EN] Uji Paritas Python vs Kotlin (20 sampel, toleransi {tolerance}) ===")
 
     word_vocab = cfg["word"]["vocabulary"]
@@ -406,9 +414,6 @@ def parity_test_en(cfg: dict, session, fixtures: dict, tolerance: float = 1e-3) 
 
 
 def parity_test_id(cfg: dict, session, fixtures: dict, tolerance: float = 1e-3) -> dict:
-    """
-    Uji Paritas Python vs Kotlin (Indonesian Political v3).
-    """
     print(f"\n=== [ID] Uji Paritas Python vs Kotlin (10 sampel, toleransi {tolerance}) ===")
 
     vocab = cfg["vocabulary"]
@@ -462,26 +467,18 @@ def parity_test_id(cfg: dict, session, fixtures: dict, tolerance: float = 1e-3) 
 if __name__ == "__main__":
     args = parse_args()
 
-    # Load English artifacts
-    json_path_en = os.path.join(args.assets_dir, "fake_news_model_en_v13.json")
-    with open(json_path_en, encoding="utf-8") as f:
-        cfg_en = json.load(f)
+    # Load English & Indonesian artifacts (.json.gz or .json)
+    cfg_en = load_model_json(args.assets_dir, "fake_news_model_en_v13")
     session_en = ort.InferenceSession(os.path.join(args.assets_dir, "fake_news_model_en_v13.onnx"))
 
-    # Load Indonesian artifacts
-    json_path_id = os.path.join(args.assets_dir, "fake_news_model_id_political_v3.json")
-    with open(json_path_id, encoding="utf-8") as f:
-        cfg_id = json.load(f)
+    cfg_id = load_model_json(args.assets_dir, "fake_news_model_id_political_v3")
     session_id = ort.InferenceSession(os.path.join(args.assets_dir, "fake_news_model_id_political_v3.onnx"))
 
-    # Load Kotlin fixture
     fixtures = load_fixtures(args.fixture_file)
 
-    # 1. Dataset Evaluation
     metrics_en = evaluate_english(args, cfg_en, session_en)
     metrics_id = evaluate_indonesian(args, cfg_id, session_id)
 
-    # 2. Parity Testing (Python vs Kotlin)
     parity_en = parity_test_en(cfg_en, session_en, fixtures, tolerance=args.tolerance)
     parity_id = parity_test_id(cfg_id, session_id, fixtures, tolerance=args.tolerance)
 

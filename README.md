@@ -66,7 +66,7 @@ Jumlah fitur:
 
 
 
-## Metrik Evaluasi Model Produksi (Artefak ONNX + JSON)
+## Metrik Evaluasi Model Produksi (Artefak ONNX + JSON.GZ)
 
 Berikut adalah metrik resmi dari model artefak ONNX yang digunakan langsung oleh aplikasi Android (tersimpan di `android-app/app/src/main/assets/metrics.json` dan dihasilkan ulang melalui `python src/evaluate.py`):
 
@@ -185,7 +185,7 @@ Notebook utama:
 Deny-Project3-Final/          ← root repo
 ├── .github/
 │   └── workflows/
-│       └── android.yml       ← GitHub Actions CI (unit tests & lint)
+│       └── android.yml       ← GitHub Actions CI (unit tests, lint & instrumented test)
 ├── android-app/              ← modul Android
 │   ├── gradlew               ← Unix wrapper (mode 100755, eol=lf)
 │   ├── gradlew.bat           ← Windows wrapper
@@ -197,6 +197,7 @@ Deny-Project3-Final/          ← root repo
 ├── docs/                     ← dokumentasi & screenshots
 ├── src/                      ← pipeline training, export, evaluation ML
 ├── .gitattributes            ← menjaga mode 100755 & eol gradlew
+├── LICENSE                   ← Lisensi MIT
 └── README.md
 ```
 
@@ -568,16 +569,16 @@ Input Pengguna → ONNX Inference (offline) → LocalHistoryManager (SQLite loka
 
 Tidak ada backend eksternal yang digunakan oleh aplikasi.
 
-## Reproduksi Artefak Model (Issue #13)
+## Reproduksi Artefak Model (Issue #13 & #32)
 
-Aplikasi Android menggunakan dua pasang artefak ONNX + JSON:
+Aplikasi Android menggunakan dua pasang artefak ONNX + JSON terkompresi GZIP (`.json.gz`, tanpa duplikasi bobot `coef` yang sudah tertanam di dalam `.onnx`):
 
-| Artefak | Ukuran | Keterangan |
-|---|---|---|
-| `fake_news_model_en_v13.onnx` | ~587 KB | LinearSVC EN, dual TF-IDF |
-| `fake_news_model_en_v13.json` | ~8,2 MB | vocab + idf + coef + metrics |
-| `fake_news_model_id_political_v3.onnx` | ~391 KB | LinearSVC ID, single TF-IDF |
-| `fake_news_model_id_political_v3.json` | ~4,4 MB | vocab + idf + coef |
+| Artefak | Ukuran Sebelum (`.json`) | Ukuran Sesudah (`.json.gz`) | Keterangan |
+|---|---|---|---|
+| `fake_news_model_en_v13.onnx` | ~586 KB | ~586 KB | LinearSVC EN, dual TF-IDF |
+| `fake_news_model_en_v13.json.gz` | 8,50 MB (`8.495.080` B) | **1,73 MB** (`1.732.624` B, **-79,6%**) | vocab + idf + stop_words + metrics |
+| `fake_news_model_id_political_v3.onnx` | ~391 KB | ~391 KB | LinearSVC ID, single TF-IDF |
+| `fake_news_model_id_political_v3.json.gz` | 4,57 MB (`4.569.130` B) | **1,02 MB** (`1.022.156` B, **-77,6%**) | vocab + idf + threshold |
 
 ### Prasyarat
 
@@ -596,7 +597,7 @@ pip install -r requirements-src.txt   # Python 3.10+, semua versi dipin
 # 2. Latih model (.pkl)
 python src/train.py --data-dir data/ --out-dir models/
 
-# 3. Ekspor ke ONNX + JSON
+# 3. Ekspor ke ONNX + JSON.GZ kompak
 python src/export_android.py --model-dir models/ \
     --out-dir android-app/app/src/main/assets/
 
@@ -614,7 +615,7 @@ cd android-app && ./gradlew testDebugUnitTest connectedDebugAndroidTest
 ```
 src/
 ├── train.py              # Latih LinearSVC EN + ID dari dataset mentah -> .pkl
-├── export_android.py     # Konversi .pkl -> ONNX + JSON (format aplikasi Android)
+├── export_android.py     # Konversi .pkl -> ONNX + JSON.GZ kompak (format aplikasi Android)
 ├── evaluate.py           # Evaluasi ONNX, confusion matrix, uji paritas Python vs Kotlin
 ├── generate_golden.py    # Generator golden fixture paritas preprocessing sklearn <-> Kotlin
 └── parity_fixtures.json  # Fixture skor Kotlin ter-commit untuk uji paritas (toleransi 1e-3)
@@ -630,7 +631,7 @@ models/                   # Output train.py — tidak di-commit
 requirements-src.txt      # Dependensi terpin untuk src/
 android-app/app/src/
 ├── main/java/com/example/fakenewsdetection/
-│   ├── FakeNewsClassifier.kt  # Integrasi model & delegasi preprocessing
+│   ├── FakeNewsClassifier.kt  # Integrasi model (.json.gz + .onnx) & delegasi preprocessing
 │   └── TextPreprocessor.kt   # Preprocessing murni tanpa Context (JVM-testable)
 ├── test/
 │   ├── java/com/example/fakenewsdetection/
@@ -650,10 +651,9 @@ Ringkasan perbandingan metrik eksperimen awal notebook vs artefak ONNX produksi 
 | Model Artefak | Format | Fitur TF-IDF | Sampel Uji | Accuracy | F1-Score | Status Uji Paritas Kotlin |
 |---|---|---|---|---|---|---|
 | **Eksperimen Awal (Notebook)** | `.pkl` | 50.000 (Word) | 8.936 | 98,95% | 98,89% | N/A (Colab only) |
-| **English v1.3 (Produksi)** | `.onnx` + `.json` | 100k Word + 50k Char | 8.980 | **98,92%** (confident) | **98,89%** | **20/20 PASS** (tol 1e-3) |
-| **Indonesian Political v3 (Produksi)** | `.onnx` + `.json` | 100k Word | 1.200 | **94,17%** | **93,88%** | **10/10 PASS** (tol 1e-3) |
+| **English v1.3 (Produksi)** | `.onnx` + `.json.gz` | 100k Word + 50k Char | 8.980 | **98,92%** (confident) | **98,89%** | **20/20 PASS** (tol 1e-3) |
+| **Indonesian Political v3 (Produksi)** | `.onnx` + `.json.gz` | 100k Word | 1.200 | **94,17%** | **93,88%** | **10/10 PASS** (tol 1e-3) |
 
 Metrik resmi artefak ONNX tersimpan di `android-app/app/src/main/assets/metrics.json` yang dihasilkan `src/evaluate.py` setelah proses regenerasi dan evaluasi.
 
 Aplikasi melakukan klasifikasi berdasarkan pola teks statistik offline, bukan verifikasi kebenaran berita secara real-time. Untuk pemahaman mendalam mengenai batasan domain, publisher bias ISOT, dan ambang keputusan, lihat bagian [Keterbatasan & Kapan Jangan Dipakai](#keterbatasan--kapan-jangan-dipakai-model-limitations).
-

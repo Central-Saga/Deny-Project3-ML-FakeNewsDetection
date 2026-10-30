@@ -1,11 +1,11 @@
-# export_android.py — ekspor model .pkl ke format ONNX + JSON yang dipakai aplikasi Android
+# export_android.py — ekspor model .pkl ke format ONNX + JSON.GZ yang dipakai aplikasi Android
 #
 # Penggunaan:
 #   python src/export_android.py --model-dir models/ --out-dir android-app/app/src/main/assets/
 #
 # Output:
-#   fake_news_model_en_v13.onnx  + fake_news_model_en_v13.json
-#   fake_news_model_id_political_v3.onnx + fake_news_model_id_political_v3.json
+#   fake_news_model_en_v13.onnx  + fake_news_model_en_v13.json.gz
+#   fake_news_model_id_political_v3.onnx + fake_news_model_id_political_v3.json.gz
 #
 # Format ONNX:
 #   EN  : input  word_tfidf [1, 100000] float32 + char_tfidf [1, 50000] float32
@@ -16,6 +16,7 @@
 # Arsitektur SVM linear: score = coef_word @ x_word + coef_char @ x_char + intercept
 
 import argparse
+import gzip
 import json
 import os
 
@@ -31,13 +32,13 @@ from onnx import helper, TensorProto, numpy_helper
 
 def parse_args():
     p = argparse.ArgumentParser(
-        description="Ekspor model .pkl ke ONNX + JSON untuk aplikasi Android"
+        description="Ekspor model .pkl ke ONNX + JSON.GZ untuk aplikasi Android"
     )
     p.add_argument("--model-dir", default="models", help="Folder .pkl (output train.py).")
     p.add_argument(
         "--out-dir",
         default="android-app/app/src/main/assets",
-        help="Folder output ONNX + JSON.",
+        help="Folder output ONNX + JSON.GZ.",
     )
     p.add_argument(
         "--uncertain-threshold",
@@ -187,10 +188,7 @@ def export_english(model_dir: str, out_dir: str, uncertain_threshold: float):
         f.write(onnx_model.SerializeToString())
     print(f"  ONNX → {onnx_path} ({os.path.getsize(onnx_path) / 1024:.1f} KB)")
 
-    # --- JSON ---
-    word_vocab_list = vocab_to_ordered_list(tfidf_word.vocabulary_)
-    char_vocab_list = vocab_to_ordered_list(tfidf_char.vocabulary_)
-
+    # --- JSON.GZ (tanpa duplikasi coef karena bobot SVM sudah di dalam .onnx) ---
     payload = {
         "model_version": "1.3",
         "language": "en",
@@ -213,7 +211,6 @@ def export_english(model_dir: str, out_dir: str, uncertain_threshold: float):
             "norm": "l2",
             "vocabulary": {token: int(idx) for token, idx in tfidf_word.vocabulary_.items()},
             "idf": tfidf_word.idf_.tolist(),
-            "coef": coef_word.tolist(),
             "stop_words": list(tfidf_word.stop_words_) if hasattr(tfidf_word, "stop_words_") and tfidf_word.stop_words_ else [],
         },
         "char": {
@@ -224,7 +221,6 @@ def export_english(model_dir: str, out_dir: str, uncertain_threshold: float):
             "norm": "l2",
             "vocabulary": {token: int(idx) for token, idx in tfidf_char.vocabulary_.items()},
             "idf": tfidf_char.idf_.tolist(),
-            "coef": coef_char.tolist(),
         },
         "svm": {
             "intercept": intercept,
@@ -236,10 +232,12 @@ def export_english(model_dir: str, out_dir: str, uncertain_threshold: float):
         },
     }
 
-    json_path = os.path.join(out_dir, "fake_news_model_en_v13.json")
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"  JSON → {json_path} ({os.path.getsize(json_path) / 1024 / 1024:.1f} MB)")
+    gz_path = os.path.join(out_dir, "fake_news_model_en_v13.json.gz")
+    raw_bytes = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    with open(gz_path, "wb") as raw_f:
+        with gzip.GzipFile(filename="", mode="wb", fileobj=raw_f, compresslevel=9, mtime=0) as gz_f:
+            gz_f.write(raw_bytes)
+    print(f"  JSON.GZ → {gz_path} ({os.path.getsize(gz_path) / 1024 / 1024:.2f} MB)")
 
 
 # ---------------------------------------------------------------------------
@@ -272,7 +270,7 @@ def export_indonesian(model_dir: str, out_dir: str):
         f.write(onnx_model.SerializeToString())
     print(f"  ONNX → {onnx_path} ({os.path.getsize(onnx_path) / 1024:.1f} KB)")
 
-    # --- JSON ---
+    # --- JSON.GZ (tanpa duplikasi coef karena bobot SVM sudah di dalam .onnx) ---
     payload = {
         "version": "political-v3-android",
         "language": "id",
@@ -298,13 +296,14 @@ def export_indonesian(model_dir: str, out_dir: str):
         },
         "vocabulary": {token: int(idx) for token, idx in tfidf_id.vocabulary_.items()},
         "idf": tfidf_id.idf_.tolist(),
-        "coef": coef[0].tolist(),
     }
 
-    json_path = os.path.join(out_dir, "fake_news_model_id_political_v3.json")
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"  JSON → {json_path} ({os.path.getsize(json_path) / 1024 / 1024:.1f} MB)")
+    gz_path = os.path.join(out_dir, "fake_news_model_id_political_v3.json.gz")
+    raw_bytes = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    with open(gz_path, "wb") as raw_f:
+        with gzip.GzipFile(filename="", mode="wb", fileobj=raw_f, compresslevel=9, mtime=0) as gz_f:
+            gz_f.write(raw_bytes)
+    print(f"  JSON.GZ → {gz_path} ({os.path.getsize(gz_path) / 1024 / 1024:.2f} MB)")
 
 
 # ---------------------------------------------------------------------------

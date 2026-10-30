@@ -6,8 +6,11 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.zip.GZIPOutputStream
 import kotlin.math.abs
 
 class FakeNewsClassifierTest {
@@ -52,15 +55,27 @@ class FakeNewsClassifierTest {
         )
 
         fun findAssetFile(fileName: String): File {
-            val candidates = listOf(
-                File("src/main/assets", fileName),
-                File("app/src/main/assets", fileName),
-                File("../app/src/main/assets", fileName),
-                File("../../android-app/app/src/main/assets", fileName),
-                File("../android-app/app/src/main/assets", fileName)
+            val names = listOf(
+                fileName,
+                "$fileName.gz",
+                fileName.removeSuffix(".gz"),
+                "$fileName.bin",
+                fileName.removeSuffix(".bin")
+            ).distinct()
+            val dirs = listOf(
+                File("src/main/assets"),
+                File("app/src/main/assets"),
+                File("../app/src/main/assets"),
+                File("../../android-app/app/src/main/assets"),
+                File("../android-app/app/src/main/assets")
             )
-            return candidates.firstOrNull { it.exists() }
-                ?: throw FileNotFoundException("Asset not found: $fileName in $candidates (cwd=${File(".").absolutePath})")
+            for (name in names) {
+                for (dir in dirs) {
+                    val file = File(dir, name)
+                    if (file.exists()) return file
+                }
+            }
+            throw FileNotFoundException("Asset not found: $fileName in $dirs (cwd=${File(".").absolutePath})")
         }
 
         fun findFixtureFile(): File? {
@@ -80,7 +95,9 @@ class FakeNewsClassifierTest {
     fun setUp() {
         classifier = FakeNewsClassifier(
             assetReader = { fileName ->
-                findAssetFile(fileName).readText(Charsets.UTF_8)
+                findAssetFile(fileName)
+                    .inputStream()
+                    .use { FakeNewsClassifier.readAssetText(it) }
             },
             onnxScorerProvider = {
                 OnnxSvmScorer(
@@ -94,6 +111,27 @@ class FakeNewsClassifierTest {
     @After
     fun tearDown() {
         classifier.close()
+    }
+
+    // =========================================================
+    // 0. ASSET READER STREAM TESTS (GZIP & PLAIN FALLBACK)
+    // =========================================================
+
+    @Test
+    fun testReadAssetText_supportsBothGzipAndPlainText() {
+        val sampleJson = """{"test": true, "message": "halo dunia"}"""
+
+        // 1. Plain text stream
+        val plainStream = ByteArrayInputStream(sampleJson.toByteArray(Charsets.UTF_8))
+        val plainResult = FakeNewsClassifier.readAssetText(plainStream)
+        assertEquals(sampleJson, plainResult)
+
+        // 2. GZIP compressed stream
+        val baos = ByteArrayOutputStream()
+        GZIPOutputStream(baos).use { it.write(sampleJson.toByteArray(Charsets.UTF_8)) }
+        val gzipStream = ByteArrayInputStream(baos.toByteArray())
+        val gzipResult = FakeNewsClassifier.readAssetText(gzipStream)
+        assertEquals(sampleJson, gzipResult)
     }
 
     // =========================================================
