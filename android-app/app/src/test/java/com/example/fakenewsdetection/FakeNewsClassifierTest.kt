@@ -80,7 +80,9 @@ class FakeNewsClassifierTest {
     fun setUp() {
         classifier = FakeNewsClassifier(
             assetReader = { fileName ->
-                findAssetFile(fileName).readText(Charsets.UTF_8)
+                findAssetFile(fileName)
+                    .inputStream()
+                    .use { FakeNewsClassifier.readAssetText(it) }
             },
             onnxScorerProvider = {
                 OnnxSvmScorer(

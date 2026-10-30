@@ -5,20 +5,8 @@
 #
 # Output:
 #   android-app/app/src/test/resources/golden_preprocessing.json
-#
-# Referensi yang dipakai:
-#   - Cleaning  : clean_english_text / clean_indonesian_text di src/evaluate.py
-#                 (satu-satunya implementasi cleaning Python di repo).
-#   - Fitur     : analyzer ASLI scikit-learn (TfidfVectorizer.build_analyzer),
-#                 BUKAN salinan manual logika Kotlin. Dengan begitu golden test
-#                 mengukur paritas Kotlin terhadap perilaku sklearn yang dipakai
-#                 saat model dilatih (word 1-2 gram, char_wb 3-5 gram).
-#   - TF-IDF    : sublinear_tf (1 + ln tf) * idf, normalisasi L2, memakai
-#                 vocabulary + idf dari artefak JSON yang dikirim ke aplikasi.
-#
-# Jalankan ulang skrip ini setiap kali aturan preprocessing atau artefak model
-# berubah, lalu commit file JSON hasilnya.
 
+import gzip
 import json
 import os
 import sys
@@ -38,7 +26,6 @@ OUT_PATH = os.path.join(
 
 TOKEN_PATTERN = r"(?u)\b\w\w+\b"
 
-# 15 teks EN — termasuk kasus tepi yang rawan drift regex/tokenisasi.
 ENGLISH_TEXTS = [
     "WASHINGTON (Reuters) - The White House announced a new trade deal on Monday.",
     "BREAKING: Aliens land in Washington DC!!! Government CONFIRMS everything...",
@@ -57,7 +44,6 @@ ENGLISH_TEXTS = [
     "A",
 ]
 
-# 15 teks ID — termasuk boilerplate cek fakta, URL, email, domain, nama penulis.
 INDONESIAN_TEXTS = [
     "Presiden Joko Widodo meresmikan jalan tol baru di Jawa Tengah pada Senin (12/10).",
     "Beredar kabar pemerintah membagikan bantuan uang tunai 100 juta rupiah lewat WhatsApp!",
@@ -77,8 +63,12 @@ INDONESIAN_TEXTS = [
 ]
 
 
-def load_json(name):
-    with open(os.path.join(ASSETS, name), encoding="utf-8") as f:
+def load_json(stem):
+    gz_path = os.path.join(ASSETS, f"{stem}.json.gz")
+    if os.path.exists(gz_path):
+        with gzip.open(gz_path, "rt", encoding="utf-8") as f:
+            return json.load(f)
+    with open(os.path.join(ASSETS, f"{stem}.json"), encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -97,8 +87,8 @@ def tfidf_sparse(counts, vocabulary, idf):
 
 
 def main():
-    cfg_en = load_json("fake_news_model_en_v13.json")
-    cfg_id = load_json("fake_news_model_id_political_v3.json")
+    cfg_en = load_json("fake_news_model_en_v13")
+    cfg_id = load_json("fake_news_model_id_political_v3")
 
     en_stop = sorted(cfg_en["word"]["stop_words"])
     en_word_an = TfidfVectorizer(

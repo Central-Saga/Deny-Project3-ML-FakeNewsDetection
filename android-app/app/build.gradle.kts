@@ -80,6 +80,11 @@ android {
         }
     }
 
+    androidResources {
+        // Hindari kompresi ganda pada artefak model biner/GZIP di dalam APK
+        noCompress += listOf("gz", "onnx")
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

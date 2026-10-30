@@ -3,7 +3,10 @@ package com.example.fakenewsdetection
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.BufferedInputStream
+import java.io.InputStream
 import java.util.Locale
+import java.util.zip.GZIPInputStream
 
 class FakeNewsClassifier internal constructor(
     private val assetReader: (String) -> String,
@@ -12,10 +15,7 @@ class FakeNewsClassifier internal constructor(
 
     constructor(context: Context) : this(
         assetReader = { fileName ->
-            context.assets
-                .open(fileName)
-                .bufferedReader()
-                .use { it.readText() }
+            context.assets.open(fileName).use { readAssetText(it) }
         },
         onnxScorerProvider = { OnnxSvmScorer(context.applicationContext) }
     )
@@ -38,24 +38,43 @@ class FakeNewsClassifier internal constructor(
         const val LABEL_FAKE = 0
         const val LABEL_REAL = 1
 
-        private const val MODEL_FILE_EN =
-            "fake_news_model_en_v13.json"
+        internal const val MODEL_FILE_EN =
+            "fake_news_model_en_v13.json.gz"
 
-        private const val MODEL_FILE_ID =
-            "fake_news_model_id_political_v3.json"
+        internal const val MODEL_FILE_ID =
+            "fake_news_model_id_political_v3.json.gz"
+
+        /**
+         * Membaca teks UTF-8 dari stream aset (mendukung otomatis format GZIP `.json.gz`
+         * maupun teks JSON biasa melalui pengecekan magic header 0x1F 0x8B).
+         */
+        internal fun readAssetText(inputStream: InputStream): String {
+            val buffered = BufferedInputStream(inputStream, 65536)
+            buffered.mark(2)
+            val b0 = buffered.read()
+            val b1 = buffered.read()
+            buffered.reset()
+            val isGzip = (b0 == 0x1f && b1 == 0x8b)
+            val payloadStream: InputStream = if (isGzip) {
+                GZIPInputStream(buffered, 65536)
+            } else {
+                buffered
+            }
+            return payloadStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+        }
     }
 
     // =========================================================
     // ENGLISH MODEL
     // =========================================================
 
-    internal val enWordVocabulary = HashMap<String, Int>()
+    internal val enWordVocabulary = HashMap<String, Int>(135000)
 
-    internal val enWordStopWords = HashSet<String>()
+    internal val enWordStopWords = HashSet<String>(512)
 
     internal lateinit var enWordIdf: DoubleArray
 
-    internal val enCharVocabulary = HashMap<String, Int>()
+    internal val enCharVocabulary = HashMap<String, Int>(70000)
 
     internal lateinit var enCharIdf: DoubleArray
 
@@ -67,7 +86,7 @@ class FakeNewsClassifier internal constructor(
     // INDONESIAN POLITICAL v3
     // =========================================================
 
-    internal val idVocabulary = HashMap<String, Int>()
+    internal val idVocabulary = HashMap<String, Int>(135000)
 
     internal lateinit var idIdf: DoubleArray
     internal lateinit var idClasses: IntArray

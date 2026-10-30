@@ -2,9 +2,10 @@ package com.example.fakenewsdetection
 
 import android.content.Intent
 import android.graphics.Color
-import android.util.Log
 import android.os.Bundle
 import android.os.Process
+import android.os.SystemClock
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
@@ -376,9 +377,12 @@ class MainActivity : AppCompatActivity() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
 
             try {
-                // Inisialisasi JSON dilakukan di background worker.
+                // Inisialisasi vocabulary/IDF (.json.gz) dilakukan di background worker.
                 // ONNX Runtime akan dimuat saat pertama kali predict.
+                val startMs = SystemClock.elapsedRealtime()
                 val loadedClassifier = FakeNewsClassifier(applicationContext)
+                val elapsedMs = SystemClock.elapsedRealtime() - startMs
+                Log.i("FakeNewsDetection", "Model vocabulary/IDF berhasil dimuat dalam ${elapsedMs} ms")
                 classifier = loadedClassifier
 
                 runOnUiThread {
