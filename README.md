@@ -1,6 +1,6 @@
 \# Fake News Detection
 
-
+[![Android CI](https://github.com/Central-Saga/Deny-Project3-ML-FakeNewsDetection/actions/workflows/android.yml/badge.svg)](https://github.com/Central-Saga/Deny-Project3-ML-FakeNewsDetection/actions/workflows/android.yml)
 
 Project Machine Learning untuk melakukan klasifikasi artikel berita menjadi \*\*FAKE\*\* atau \*\*REAL\*\* menggunakan teknik Text Classification.
 
@@ -343,10 +343,14 @@ Aplikasi memanfaatkan runtime ONNX (`ai.onnxruntime:onnxruntime-android`) dan mo
 
 ### Continuous Integration (CI)
 
+[![Android CI](https://github.com/Central-Saga/Deny-Project3-ML-FakeNewsDetection/actions/workflows/android.yml/badge.svg)](https://github.com/Central-Saga/Deny-Project3-ML-FakeNewsDetection/actions/workflows/android.yml)
+
 Repository dilengkapi dengan GitHub Actions workflow di `.github/workflows/android.yml`:
-- **Trigger**: Setiap `push` ke `main`, branch `fix/**`, `feat/**`, dan `pull_request` ke `main`.
-- **Environment**: Ubuntu Latest dengan JDK 21 (Temurin) dan Gradle Cache.
-- **Tasks**: Menjalankan unit tests (`testDebugUnitTest`) dan static analysis (`lint`) secara otomatis pada sub-proyek `android-app/`.
+- **Trigger**: Setiap `push` ke `main`, branch `fix/**`, `feat/**`, `pull_request` ke `main`, serta `workflow_dispatch`.
+- **Environment**: Ubuntu Latest dengan JDK 21 (Temurin), Gradle Cache, dan KVM Hardware Acceleration.
+- **Jobs**:
+  1. **`build-and-test` (Unit Test & Lint)**: Menjalankan unit tests JVM (`./gradlew testDebugUnitTest --no-daemon`, mencakup 37 unit & golden parity tests) dan static analysis (`./gradlew lint --no-daemon`) pada sub-proyek `android-app/`.
+  2. **`instrumented` (Instrumented Test — API 30)**: Melakukan pre-build APK (`./gradlew assembleDebug assembleDebugAndroidTest`), menyalakan Android Emulator (`reactivecircus/android-emulator-runner@v2`, `api-level: 30`, `target: google_apis`, `arch: x86_64`), dan mengeksekusi `./gradlew connectedDebugAndroidTest --no-daemon --stacktrace` untuk memverifikasi inferensi ONNX Runtime asli di perangkat (`FakeNewsClassifierInstrumentedTest.kt`: model English v1.3 & Indonesian Political v3). Laporan HTML hasil eksekusi di-upload otomatis sebagai workflow artifact `connected-android-test-report` (`android-app/app/build/reports/androidTests/connected/`).
 
 ### Verification
 
@@ -601,8 +605,8 @@ python src/evaluate.py --data-dir data/ \
     --assets-dir android-app/app/src/main/assets/
 # Output: android-app/app/src/main/assets/metrics.json
 
-# 5. Uji paritas dan unit test Kotlin di Android
-cd android-app && ./gradlew test
+# 5. Uji paritas, unit test JVM, dan instrumented test ONNX di Android
+cd android-app && ./gradlew testDebugUnitTest connectedDebugAndroidTest
 ```
 
 ### Struktur File ML & Uji Paritas

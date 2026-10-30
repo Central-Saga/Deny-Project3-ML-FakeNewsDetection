@@ -9,6 +9,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -26,10 +27,6 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Verify Gradle wrapper executable
-        run: chmod +x gradlew
-        working-directory: android-app
-
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest --no-daemon
         working-directory: android-app
@@ -37,3 +34,49 @@ jobs:
       - name: Run Lint
         run: ./gradlew lint --no-daemon
         working-directory: android-app
+
+  instrumented:
+    name: Instrumented Test (API 30)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Enable KVM group permissions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Pre-build Debug & AndroidTest APKs
+        working-directory: android-app
+        run: ./gradlew assembleDebug assembleDebugAndroidTest --no-daemon
+
+      - name: Run Instrumented Tests on Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          ram-size: 4096M
+          heap-size: 512M
+          disable-animations: true
+          working-directory: android-app
+          script: ./gradlew connectedDebugAndroidTest --no-daemon --stacktrace
+
+      - name: Upload Connected AndroidTest Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: connected-android-test-report
+          path: android-app/app/build/reports/androidTests/connected/
+          if-no-files-found: warn
