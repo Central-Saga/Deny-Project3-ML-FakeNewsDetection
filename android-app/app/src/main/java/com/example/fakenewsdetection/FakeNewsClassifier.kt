@@ -4,6 +4,7 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedInputStream
+import java.io.FileNotFoundException
 import java.io.InputStream
 import java.util.Locale
 import java.util.zip.GZIPInputStream
@@ -15,7 +16,7 @@ class FakeNewsClassifier internal constructor(
 
     constructor(context: Context) : this(
         assetReader = { fileName ->
-            context.assets.open(fileName).use { readAssetText(it) }
+            openAssetStream(context, fileName).use { readAssetText(it) }
         },
         onnxScorerProvider = { OnnxSvmScorer(context.applicationContext) }
     )
@@ -43,6 +44,30 @@ class FakeNewsClassifier internal constructor(
 
         internal const val MODEL_FILE_ID =
             "fake_news_model_id_political_v3.json.gz"
+
+        /**
+         * Membuka stream aset dengan fallback nama file (AAPT2 dapat mengekstrak dan/atau
+         * menghapus ekstensi `.gz` saat memaketkan aset ke dalam APK).
+         */
+        internal fun openAssetStream(context: Context, fileName: String): InputStream {
+            val candidates = listOf(
+                fileName,
+                fileName.removeSuffix(".gz"),
+                fileName.removeSuffix(".bin"),
+                "$fileName.bin",
+                "$fileName.gz"
+            ).distinct()
+
+            var lastException: Exception? = null
+            for (candidate in candidates) {
+                try {
+                    return context.assets.open(candidate)
+                } catch (e: Exception) {
+                    lastException = e
+                }
+            }
+            throw lastException ?: FileNotFoundException("Asset not found among candidates: $candidates")
+        }
 
         /**
          * Membaca teks UTF-8 dari stream aset (mendukung otomatis format GZIP `.json.gz`
