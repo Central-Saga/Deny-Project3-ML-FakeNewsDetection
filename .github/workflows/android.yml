@@ -70,7 +70,6 @@ jobs:
           ram-size: 4096M
           heap-size: 512M
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -nosnapshot -noaudio -no-boot-anim
           working-directory: android-app
           script: ./gradlew connectedDebugAndroidTest --no-daemon --stacktrace
 
